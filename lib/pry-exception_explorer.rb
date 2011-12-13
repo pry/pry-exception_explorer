@@ -4,8 +4,20 @@
 require "pry-exception_explorer/version"
 require "pry"
 
+if RUBY_VERSION =~ /1.9/
+  require 'continuation'
+end
+
 class Exception
+  NoContinuation = Class.new(StandardError)
+
+  attr_accessor :continuation
   attr_accessor :exception_call_stack
+
+  def continue
+    raise NoContinuation unless continuation.respond_to?(:call)
+    continuation.call
+  end  
 end
 
 class Object
@@ -19,7 +31,10 @@ class Object
     ex.set_backtrace(array)
     ex.exception_call_stack = binding.callers.tap(&:shift)
 
-    super(ex)
+    callcc do |cc|
+      ex.continuation = cc
+      super(ex)
+    end
   end
 end
 
@@ -27,6 +42,7 @@ PryExceptionExplorer::Commands = Pry::CommandSet.new do
 
   command "enter-exception", "Enter the context of the last exception" do
     PryStackExplorer.push_and_create_frame_manager(_pry_.last_exception.exception_call_stack, _pry_)
+    PryStackExplorer.frame_manager(_pry_).user[:exception] = _pry_.last_exception
     PryStackExplorer.frame_manager(_pry_).refresh_frame
   end
 
@@ -34,6 +50,18 @@ PryExceptionExplorer::Commands = Pry::CommandSet.new do
     PryStackExplorer.pop_frame_manager(_pry_)
     PryStackExplorer.frame_manager(_pry_).refresh_frame
   end
+
+  command "continue-exception", "Attempt to continue the current exception." do
+    ex = PryStackExplorer.frame_manager(_pry_).user[:exception]
+
+    if ex && ex.continuation
+      PryStackExplorer.pop_frame_manager(_pry_)
+      ex.continue
+    else
+      output.puts "No exception to continue!"
+    end
+  end
+
 end
 
 Pry.config.commands.import PryExceptionExplorer::Commands
