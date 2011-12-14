@@ -1,6 +1,7 @@
 # pry-exception_explorer.rb
 # (C) John Mair (banisterfiend); MIT license
 
+require 'pry-stack_explorer'
 require "pry-exception_explorer/version"
 require "pry"
 
@@ -17,6 +18,7 @@ module PryExceptionExplorer
     Pry.config.hooks.add_hook(:when_started, :setup_exception_context) do |binding_stack, _pry_|
       binding_stack.replace([ex.exception_call_stack.first])
       PryStackExplorer.push_and_create_frame_manager(ex.exception_call_stack, _pry_)
+      PryStackExplorer.frame_manager(_pry_).user[:exception] = ex
     end
 
     pry
@@ -32,7 +34,7 @@ class Exception
   def continue
     raise NoContinuation unless continuation.respond_to?(:call)
     continuation.call
-  end  
+  end
 end
 
 class Object
