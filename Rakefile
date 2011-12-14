@@ -31,6 +31,12 @@ task :pry do
   exec("pry -I#{direc}/lib/ -r #{direc}/lib/#{PROJECT_NAME}")
 end
 
+desc "reinstall gem"
+task :reinstall => :gems do
+  sh "gem uninstall pry-exception_explorer"
+  sh "gem install #{direc}/pkg/*.gem"
+end
+
 desc "run tests"
 task :test do
   sh "bacon -Itest -rubygems -a"
