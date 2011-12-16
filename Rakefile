@@ -34,7 +34,7 @@ end
 
 desc "reinstall gem"
 task :reinstall => :gems do
-  sh "gem uninstall pry-exception_explorer"
+  sh "gem uninstall pry-exception_explorer" rescue nil
   sh "gem install #{direc}/pkg/pry-exception_explorer-#{PryExceptionExplorer::VERSION}.gem"
 end
 

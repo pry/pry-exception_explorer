@@ -42,22 +42,34 @@ end
 PryExceptionExplorer::Commands = Pry::CommandSet.new do
 
   command "enter-exception", "Enter the context of the last exception" do
-    PryStackExplorer.push_and_create_frame_manager(_pry_.last_exception.exception_call_stack, _pry_)
-    PryStackExplorer.frame_manager(_pry_).user[:exception] = _pry_.last_exception
-    PryStackExplorer.frame_manager(_pry_).refresh_frame
+    ex = _pry_.last_exception
+    if ex && ex.exception_call_stack
+      PryStackExplorer.create_and_push_frame_manager(_pry_.last_exception.exception_call_stack, _pry_)
+      PryStackExplorer.frame_manager(_pry_).user[:exception] = _pry_.last_exception
+      PryStackExplorer.frame_manager(_pry_).refresh_frame
+    elsif ex
+      output.puts "Current exception can't be entered! (perhaps a C exception)"
+    else
+      output.puts "No exception to enter!"
+    end
   end
 
   command "exit-exception", "Leave the context of the current exception." do
-    PryStackExplorer.pop_frame_manager(_pry_)
-    PryStackExplorer.frame_manager(_pry_).refresh_frame
+    fm = PryStackExplorer.frame_manager(_pry_)
+    if fm && fm.user[:exception]
+      PryStackExplorer.pop_frame_manager(_pry_)
+      PryStackExplorer.frame_manager(_pry_).refresh_frame
+    else
+      output.puts "You are not in an exception!"
+    end
   end
 
   command "continue-exception", "Attempt to continue the current exception." do
-    ex = PryStackExplorer.frame_manager(_pry_).user[:exception]
+    fm = PryStackExplorer.frame_manager(_pry_)
 
-    if ex && ex.continuation
+    if fm && fm.user[:exception] && fm.user[:exception].continuation
       PryStackExplorer.pop_frame_manager(_pry_)
-      ex.continue
+      fm.user[:exception].continue
     else
       output.puts "No exception to continue!"
     end

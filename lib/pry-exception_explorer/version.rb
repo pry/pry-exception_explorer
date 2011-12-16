@@ -1,3 +1,3 @@
 module PryExceptionExplorer
-  VERSION = "0.1.0pre1"
+  VERSION = "0.1.0pre2"
 end

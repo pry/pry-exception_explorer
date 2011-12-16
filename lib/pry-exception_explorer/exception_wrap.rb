@@ -8,7 +8,7 @@ module PryExceptionExplorer
   rescue Exception => ex
     Pry.config.hooks.add_hook(:when_started, :setup_exception_context) do |binding_stack, _pry_|
       binding_stack.replace([ex.exception_call_stack.first])
-      PryStackExplorer.push_and_create_frame_manager(ex.exception_call_stack, _pry_)
+      PryStackExplorer.create_and_push_frame_manager(ex.exception_call_stack, _pry_)
       PryStackExplorer.frame_manager(_pry_).user[:exception] = ex
     end
 
