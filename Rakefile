@@ -1,4 +1,4 @@
-n$:.unshift 'lib'
+$:.unshift 'lib'
 
 dlext = Config::CONFIG['DLEXT']
 direc = File.dirname(__FILE__)
