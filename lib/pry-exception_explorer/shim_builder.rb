@@ -67,7 +67,11 @@ EOF
       backward_include = File.join RbConfig::CONFIG['includedir'], "ruby-1.9.1",  "ruby/backward"
       ruby191_include = File.join RbConfig::CONFIG['includedir'], "ruby-1.9.1"
 
-      compile_line = "gcc -Wall -L#{lib_dir} -lruby -I#{arch_include}  -I#{backward_include} -I#{ruby191_include} -o lib_overrides.dylib -dynamiclib #{@file}"
+      if RUBY_PLATFORM =~ /darwin/
+        compile_line = "gcc -Wall -L#{lib_dir} -lruby -I#{arch_include}  -I#{backward_include} -I#{ruby191_include} -o lib_overrides.dylib -dynamiclib #{@file}"
+      else
+        compile_line = "gcc -Wall -O2 -fpic -shared -ldl -g -I#{arch_include}  -I#{backward_include} -I#{ruby191_include} -o lib_overrides.so #{@file}"
+      end
 
       FileUtils.chdir @dir do
         system(compile_line)
