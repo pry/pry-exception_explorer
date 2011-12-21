@@ -23,7 +23,7 @@ def apply_spec_defaults(s)
   s.description = s.summary
   s.require_path = 'lib'
   s.homepage = "https://github.com/banister/pry-exception_explorer"
-    s.add_dependency('pry-stack_explorer')
+  s.add_dependency('pry-stack_explorer')
   s.files = Dir["lib/**/*.rb", "test/*.rb", "CHANGELOG", "README.md", "Rakefile"]
 end
 
