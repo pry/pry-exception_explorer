@@ -23,6 +23,8 @@ module PryExceptionExplorer
 #include <unistd.h>
 #include <ruby.h>
 
+VALUE binding_callers(VALUE self);
+
 void
 rb_exc_raise(VALUE mesg)
 {
@@ -45,12 +47,11 @@ rb_exc_raise(VALUE mesg)
     }
   }
 
-  // VALUE caller_bindings = rb_funcall(rb_binding_new(), rb_intern("callers"), 0);
-  // rb_funcall(mesg, rb_intern("exception_call_stack="), 1, caller_bindings);
   VALUE caller_bindings = rb_ary_new3(1, rb_eval_string("binding"));
- // rb_funcall(mesg, rb_intern("exception_call_stack="), 1, caller_bindings);
+  
+  // rb_funcall(mesg, rb_intern("exception_call_stack="), 1, caller_bindings);
   //rb_funcall(mesg, rb_intern("display"), 0);
- // rb_iv_set(mesg, "@exception_call_stack", caller_bindings);
+  rb_iv_set(mesg, "@exception_call_stack", caller_bindings);
   rb_p(rb_str_new2("yo yo"));
   libruby_rb_exc_raise(mesg);
 }
