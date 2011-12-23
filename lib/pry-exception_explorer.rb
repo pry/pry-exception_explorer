@@ -13,6 +13,10 @@ end
 
 module PryExceptionExplorer
   CONTINUE_INLINE_EXCEPTION = Object.new
+
+  def self.wrap_active?
+    false
+  end
   
   def self.should_capture_exception?(ex)
     true
@@ -53,11 +57,14 @@ class Exception
 
   attr_accessor :continuation
   attr_accessor :exception_call_stack
+  attr_accessor :should_capture
 
   def continue
     raise NoContinuation unless continuation.respond_to?(:call)
     continuation.call
   end
+
+  alias_method :should_capture?, :should_capture
 end
 
 class Object
@@ -69,10 +76,14 @@ class Object
 
     ex = exception.exception(string)
     ex.set_backtrace(array)
-    ex.exception_call_stack = binding.callers.tap(&:shift)
 
-    if PryExceptionExplorer.should_capture_exception?(ex, ex.exception_call_stack.first)
-      retval = PryExceptionExplorer.enter_exception_inline(ex)
+    if PryExceptionExplorer.should_capture_exception?(ex, binding.of_caller(1))
+      ex.exception_call_stack = binding.callers.tap(&:shift)
+      ex.should_capture       = true
+
+      if !PryExceptionExplorer.wrap_active?
+        retval = PryExceptionExplorer.enter_exception_inline(ex)
+      end
     end
 
     if retval != PryExceptionExplorer::CONTINUE_INLINE_EXCEPTION

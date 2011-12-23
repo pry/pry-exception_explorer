@@ -8,7 +8,7 @@ describe PryExceptionExplorer do
     end
   end
 
-  describe "PryExceptionExplorer#intercept" do
+  describe "PryExceptionExplorer.intercept" do
     describe "class" do
       describe "first frame" do
         it  "should intercept exception based on first frame's method name" do
