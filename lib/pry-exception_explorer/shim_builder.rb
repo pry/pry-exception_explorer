@@ -23,37 +23,29 @@ module PryExceptionExplorer
 #include <unistd.h>
 #include <ruby.h>
 
-VALUE binding_callers(VALUE self);
-
 void
-rb_exc_raise(VALUE mesg)
+rb_raise(unsigned long exc, const char *fmt, ...)
 {
-  static void (*libruby_rb_exc_raise)
-    (VALUE mesg) = NULL;
+  static void (*libruby_rb_raise)
+    (unsigned long exc, const char *fmt, ...) = NULL;
 
   void * handle;
   char * error;
 
-  if (!libruby_rb_exc_raise) {
+  if (!libruby_rb_raise) {
     handle = dlopen("#{RbConfig::CONFIG['libdir']}/libruby.#{Dyname}", RTLD_LAZY);
     if (!handle) {
       fputs(dlerror(), stderr);
       exit(1);
     }
-    libruby_rb_exc_raise = dlsym(handle, "rb_exc_raise");
+    libruby_rb_raise = dlsym(handle, "rb_raise");
     if ((error = dlerror()) != NULL) {
       fprintf(stderr, "%s", error);
       exit(1);
     }
   }
 
-  VALUE caller_bindings = rb_ary_new3(1, rb_eval_string("binding"));
-  
-  // rb_funcall(mesg, rb_intern("exception_call_stack="), 1, caller_bindings);
-  //rb_funcall(mesg, rb_intern("display"), 0);
-  rb_iv_set(mesg, "@exception_call_stack", caller_bindings);
-  rb_p(rb_str_new2("yo yo"));
-  libruby_rb_exc_raise(mesg);
+  rb_funcall(rb_cObject, rb_intern("raise"), 2, exc, rb_str_new2("hooked exception (pry)"));
 }
 EOF
 
