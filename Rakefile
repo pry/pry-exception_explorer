@@ -15,7 +15,7 @@ CLEAN.include("**/*#*", "**/*#*.*", "**/*_flymake*.*", "**/*_flymake",
 
 def apply_spec_defaults(s)
   s.name = PROJECT_NAME
-  s.summary = "FIX ME"
+  s.summary = "Enter the context of exceptions"
   s.version = PryExceptionExplorer::VERSION
   s.date = Time.now.strftime '%Y-%m-%d'
   s.author = "John Mair (banisterfiend)"
@@ -24,7 +24,11 @@ def apply_spec_defaults(s)
   s.require_path = 'lib'
   s.homepage = "https://github.com/banister/pry-exception_explorer"
   s.add_dependency('pry-stack_explorer')
-  s.files = Dir["lib/**/*.rb", "test/*.rb", "CHANGELOG", "README.md", "Rakefile"]
+  s.add_development_dependency("bacon","~>1.1.0")
+  s.add_development_dependency('rake', '~> 0.9')
+
+  s.files = `git ls-files`.split("\n")
+  s.test_files = `git ls-files -- test/*`.split("\n")
 end
 
 desc "run pry with plugin enabled"
@@ -53,6 +57,13 @@ namespace :ruby do
   Rake::GemPackageTask.new(spec) do |pkg|
     pkg.need_zip = false
     pkg.need_tar = false
+  end
+
+  desc  "Generate gemspec file"
+  task :gemspec do
+    File.open("#{spec.name}.gemspec", "w") do |f|
+      f << spec.to_ruby
+    end
   end
 end
 
