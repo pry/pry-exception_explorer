@@ -17,7 +17,7 @@ module PryExceptionExplorer
   def self.wrap_active?
     false
   end
-  
+
   def self.should_capture_exception?(ex)
     true
   end
@@ -32,7 +32,7 @@ module PryExceptionExplorer
 
   def self.should_capture_exception?(ex, frame)
     if intercept_block
-      intercept_block.call(LazyFrame.new(frame))
+      intercept_block.call(LazyFrame.new(frame), ex)
     else
       false
     end
@@ -40,7 +40,7 @@ module PryExceptionExplorer
 
   def self.enter_exception_inline(ex)
     _pry_ = Pry.new
-    
+
     Pry.initial_session_setup
     PryStackExplorer.create_and_push_frame_manager(ex.exception_call_stack, _pry_)
     PryStackExplorer.frame_manager(_pry_).user[:exception]        = ex

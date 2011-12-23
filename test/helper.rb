@@ -47,3 +47,22 @@ class Toad
     raise "toad hall"
   end
 end
+
+class << Pry
+  alias_method :orig_reset_defaults, :reset_defaults
+  def reset_defaults
+    orig_reset_defaults
+
+    Pry.color = false
+    Pry.pager = false
+    Pry.config.should_load_rc      = false
+    Pry.config.plugins.enabled     = false
+    Pry.config.history.should_load = false
+    Pry.config.history.should_save = false
+    Pry.config.auto_indent         = false
+    Pry.config.hooks               = Pry::Hooks.new
+    Pry.config.collision_warning   = false
+  end
+end
+
+Pry.reset_defaults
