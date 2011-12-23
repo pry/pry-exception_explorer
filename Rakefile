@@ -1,6 +1,6 @@
 $:.unshift 'lib'
 
-dlext = Config::CONFIG['DLEXT']
+dlext = RbConfig::CONFIG['DLEXT']
 direc = File.dirname(__FILE__)
 
 PROJECT_NAME = "pry-exception_explorer"
