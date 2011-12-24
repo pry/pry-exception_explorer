@@ -19,7 +19,7 @@ describe PryExceptionExplorer do
   describe "PryExceptionExplorer.wrap" do
 
     it 'should default to capturing ALL exceptions' do
-      Pry.ExceptionExplorer.wrap do
+      PryExceptionExplorer.wrap do
         raise CaughtException, "catch me if u can"
       end.should == :caught
     end

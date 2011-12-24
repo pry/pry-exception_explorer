@@ -6,12 +6,9 @@ Pry.config.hooks.delete_hook(:when_started, :save_caller_bindings)
 PryExceptionExplorer.intercept { true }
 
 module PryExceptionExplorer
-  def self.wrap_active?
-    !!Thread.current[:__pry_exception_explorer_wrap__]
-  end
 
   def self.wrap
-    Thread.current[:__pry_exception_explorer_wrap__] = true
+    self.wrap_active = true
     yield
   rescue Exception => ex
     Pry.config.hooks.add_hook(:when_started, :setup_exception_context) do |binding_stack, _pry_|
@@ -26,7 +23,7 @@ module PryExceptionExplorer
       raise ex
     end
   ensure
-    Thread.current[:__pry_exception_explorer_wrap__] = false
+    self.wrap_active = false
   end
 end
 

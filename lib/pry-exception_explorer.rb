@@ -14,9 +14,19 @@ end
 module PryExceptionExplorer
   CONTINUE_INLINE_EXCEPTION = Object.new
 
-  def self.wrap_active?
-    false
+  class << self
+    def wrap_active=(v)
+      Thread.current[:__pry_exception_explorer_wrap__] = v
+    end
+
+    def wrap_active
+      !!Thread.current[:__pry_exception_explorer_wrap__]
+    end
+
+    alias_method :wrap_active?, :wrap_active
   end
+
+  self.wrap_active = false
 
   def self.should_capture_exception?(ex)
     true
@@ -94,5 +104,8 @@ class Object
     end
   end
 end
+
+# default is to capture all exceptions that bubble to the top
+PryExceptionExplorer.intercept { true }
 
 Pry.config.commands.import PryExceptionExplorer::Commands
