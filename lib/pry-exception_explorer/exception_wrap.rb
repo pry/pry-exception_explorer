@@ -1,4 +1,9 @@
+require 'pry-exception_explorer'
+
 Pry.config.hooks.delete_hook(:when_started, :save_caller_bindings)
+
+# default is to capture all exceptions that bubble to the top
+PryExceptionExplorer.intercept { true }
 
 module PryExceptionExplorer
   def self.wrap_active?

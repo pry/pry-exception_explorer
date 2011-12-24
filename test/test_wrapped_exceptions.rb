@@ -18,7 +18,13 @@ describe PryExceptionExplorer do
 
   describe "PryExceptionExplorer.wrap" do
 
-    it 'should not capture rescued exceptions' do
+    it 'should default to capturing ALL exceptions' do
+      Pry.ExceptionExplorer.wrap do
+        raise CaughtException, "catch me if u can"
+      end.should == :caught
+    end
+
+    it 'should NOT capture rescued exceptions' do
       o = Object.new
       def o.evil_fish
         Ratty.new.ratty
