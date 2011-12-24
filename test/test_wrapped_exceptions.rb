@@ -18,6 +18,20 @@ describe PryExceptionExplorer do
 
   describe "PryExceptionExplorer.wrap" do
 
+    it 'should not capture rescued exceptions' do
+      o = Object.new
+      def o.evil_fish
+        Ratty.new.ratty
+      rescue Exception
+      end
+
+      PryExceptionExplorer.intercept { |frame, ex| frame.method_name == :toad }
+
+      PryExceptionExplorer.wrap do
+        o.evil_fish
+      end.should.not == :caught
+    end
+
     it 'should have the full callstack attached to exception' do
       PryExceptionExplorer.intercept { |frame, ex| frame.method_name == :toad }
 
@@ -44,47 +58,96 @@ describe PryExceptionExplorer do
 
     describe "PryExceptionExplorer.intercept with wrapped exceptions" do
       describe "klass" do
-        it 'should catch a matched exception based on klass' do
-          PryExceptionExplorer.intercept { |frame, ex| frame.klass == Toad }
+        describe "first frame" do
+          it 'should catch a matched exception based on klass' do
+            PryExceptionExplorer.intercept { |frame, ex| frame.klass == Toad }
 
-          PryExceptionExplorer.wrap do
-            Ratty.new.ratty
-          end.should == :caught
+            PryExceptionExplorer.wrap do
+              Ratty.new.ratty
+            end.should == :caught
+          end
+
+          it 'should NOT catch an unmatched exception' do
+            PryExceptionExplorer.intercept { |frame, ex| frame.klass == Weasel }
+
+            begin
+              PryExceptionExplorer.wrap do
+                raise UncaughtException, "Catch me if you can't.."
+              end
+            rescue Exception => ex
+              ex.is_a?(UncaughtException).should == true
+            end
+          end
         end
 
-        it 'should NOT catch an unmatched exception' do
-          PryExceptionExplorer.intercept { |frame, ex| frame.klass == Weasel }
+        describe "third frame" do
+          it 'should catch a matched exception' do
+            PryExceptionExplorer.intercept { |frame, ex| frame.prev.prev.klass == Ratty }
 
-          begin
             PryExceptionExplorer.wrap do
-              raise UncaughtException, "Catch me if you can't.."
+              Ratty.new.ratty
+            end.should == :caught
+          end
+
+          it 'should NOT catch an unmatched exception' do
+            PryExceptionExplorer.intercept { |frame, ex| frame.prev.prev.klass == Weasel }
+
+            begin
+              PryExceptionExplorer.wrap do
+                raise UncaughtException, "Catch me if you can't.."
+              end
+            rescue Exception => ex
+              ex.is_a?(UncaughtException).should == true
             end
-          rescue Exception => ex
-            ex.is_a?(UncaughtException).should == true
           end
         end
       end
 
       describe "method_name" do
-        it 'should catch a matched exception' do
-          PryExceptionExplorer.intercept { |frame, ex| ex.is_a?(CaughtException) }
+        describe "first frame" do
+          it 'should catch a matched exception' do
+            PryExceptionExplorer.intercept { |frame, ex| frame.method_name == :toad }
 
-          PryExceptionExplorer.wrap do
-            raise CaughtException, "Catch me if you can."
-          end.should == :caught
-        end
-
-        it 'should NOT catch an unmatched exception' do
-          PryExceptionExplorer.intercept { |frame, ex| ex.is_a?(CaughtException) }
-
-          begin
             PryExceptionExplorer.wrap do
-              raise UncaughtException, "Catch me if you can't.."
+              Ratty.new.ratty
+            end.should == :caught
+          end
+
+          it 'should NOT catch an unmatched exception' do
+            PryExceptionExplorer.intercept { |frame, ex| frame.method_name == :weasel }
+
+            begin
+              PryExceptionExplorer.wrap do
+                raise UncaughtException, "Catch me if you can't.."
+              end
+            rescue Exception => ex
+              ex.is_a?(UncaughtException).should == true
             end
-          rescue Exception => ex
-            ex.is_a?(UncaughtException).should == true
           end
         end
+
+        describe "third frame" do
+          it 'should catch a matched exception' do
+            PryExceptionExplorer.intercept { |frame, ex| frame.prev.prev.method_name == :ratty }
+
+            PryExceptionExplorer.wrap do
+              Ratty.new.ratty
+            end.should == :caught
+          end
+
+          it 'should NOT catch an unmatched exception' do
+            PryExceptionExplorer.intercept { |frame, ex| frame.prev.prev.method_name == :weasel }
+
+            begin
+              PryExceptionExplorer.wrap do
+                raise UncaughtException, "Catch me if you can't.."
+              end
+            rescue Exception => ex
+              ex.is_a?(UncaughtException).should == true
+            end
+          end
+        end
+
       end
     end
   end

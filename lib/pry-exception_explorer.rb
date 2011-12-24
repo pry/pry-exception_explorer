@@ -95,5 +95,4 @@ class Object
   end
 end
 
-
 Pry.config.commands.import PryExceptionExplorer::Commands
