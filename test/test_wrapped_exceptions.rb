@@ -25,7 +25,7 @@ describe PryExceptionExplorer do
       rescue Exception
       end
 
-      PryExceptionExplorer.intercept { |frame, ex| frame.method_name == :toad }
+      PryExceptionExplorer.intercept { true }
 
       PryExceptionExplorer.wrap do
         o.evil_fish
