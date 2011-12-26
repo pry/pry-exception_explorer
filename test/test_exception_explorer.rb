@@ -1,5 +1,23 @@
 require 'helper'
 
+# override enter_exception_inline so we can use it for testing purposes
+EE.instance_eval do
+  alias original_enter_exception_inline enter_exception_inline
+end
+
+def EE.exception_intercepted?
+  @exception_intercepted
+end
+
+EE.instance_eval do
+  @exception_intercepted = false
+end
+
+def EE.enter_exception_inline(ex)
+  @exception_intercepted = true
+  EE::CONTINUE_INLINE_EXCEPTION
+end
+
 describe PryExceptionExplorer do
 
   after do
@@ -124,4 +142,8 @@ describe PryExceptionExplorer do
     end
 
   end
+end
+
+EE.instance_eval do
+  alias enter_exception_inline original_enter_exception_inline
 end
