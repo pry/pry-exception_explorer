@@ -6,10 +6,7 @@ describe PryExceptionExplorer do
     describe "enter-exception" do
       it  "should be able to enter an exception caught by pry" do
 
-        # FIXME: this should actually be set to true, not false, but
-        # it hangs tests when it's set to true, so we temporarily set
-        # it false here (until we refactor later on)
-        PryExceptionExplorer.intercept { false }
+        PryExceptionExplorer.intercept { true }
 
         # there are 3 types of situations where exception_explorer is invoked:
         # 1. when 'wrap' is used, i.e only exceptions that bubble to
@@ -25,15 +22,6 @@ describe PryExceptionExplorer do
         # `enter-exception` to start the session.
         #
         # This test is for type 3.
-
-        # FIXME: this test passes when wrap_active is set to true, but we set
-        # it to false here so we remember to refactor the
-        # exception_explorer code base to include this.
-        PryExceptionExplorer.wrap_active = false
-
-        # let's force the test to fail here so we remember about the refactor
-        PryExceptionExplorer.wrap_active.should == true
-
         mock_pry("Ratty.new.ratty", "enter-exception", "show-stack", "exit").should =~ /toad.*?weasel.*?ratty/m
       end
     end

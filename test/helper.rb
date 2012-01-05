@@ -12,7 +12,6 @@ puts "Ruby version: #{RUBY_VERSION}"
 
 EE = PryExceptionExplorer
 
-
 class Ratty
   def ratty
     Weasel.new.weasel
@@ -49,7 +48,6 @@ class << Pry
 end
 
 Pry.reset_defaults
-
 
 class InputTester
   def initialize(*actions)

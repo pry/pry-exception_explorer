@@ -105,6 +105,11 @@ class Object
   end
 end
 
+
+# Let exceptions get caught by Pry REPL loop (i.e dont catch
+# immediately at point of 'raise')
+PryExceptionExplorer.wrap_active = true
+
 # default is to capture all exceptions that bubble to the top
 PryExceptionExplorer.intercept { true }
 

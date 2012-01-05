@@ -48,6 +48,9 @@ task :test do
   sh "bacon -Itest -rubygems -a"
 end
 
+desc "Build gemspec"
+task :gemspec => "ruby:gemspec"
+
 namespace :ruby do
   spec = Gem::Specification.new do |s|
     apply_spec_defaults(s)

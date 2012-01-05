@@ -1,5 +1,6 @@
 require 'helper'
 
+
 # override enter_exception_inline so we can use it for testing purposes
 EE.instance_eval do
   alias original_enter_exception_inline enter_exception_inline
@@ -18,7 +19,14 @@ def EE.enter_exception_inline(ex)
   EE::CONTINUE_INLINE_EXCEPTION
 end
 
+prev_wrap_state = PryExceptionExplorer.wrap_active
+PryExceptionExplorer.wrap_active = false
+
 describe PryExceptionExplorer do
+
+  before do
+    PryExceptionExplorer.wrap_active = false
+  end
 
   after do
     EE.instance_eval do
@@ -147,3 +155,5 @@ end
 EE.instance_eval do
   alias enter_exception_inline original_enter_exception_inline
 end
+
+PryExceptionExplorer.wrap_active = prev_wrap_state
