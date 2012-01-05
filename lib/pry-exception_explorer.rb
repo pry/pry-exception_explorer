@@ -32,7 +32,11 @@ module PryExceptionExplorer
     true
   end
 
-  def self.intercept(&block)
+  def self.intercept(*exceptions, &block)
+    if !exceptions.empty?
+      block = proc { |_, ex| exceptions.any? { |v| v === ex } }
+    end
+
     Thread.current[:__pry_exception_explorer_intercept_block__] = block
   end
 

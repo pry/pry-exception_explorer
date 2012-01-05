@@ -1,6 +1,5 @@
 require 'helper'
 
-
 # override enter_exception_inline so we can use it for testing purposes
 EE.instance_eval do
   alias original_enter_exception_inline enter_exception_inline
@@ -35,6 +34,57 @@ describe PryExceptionExplorer do
   end
 
   describe "PryExceptionExplorer.intercept" do
+    describe "special case exception-only syntax" do
+
+      describe "single exception" do
+        it 'should intercept provided exceptions when given parameters (and no block)' do
+          my_error = Class.new(StandardError)
+          EE.intercept(my_error)
+          raise my_error
+          EE.exception_intercepted?.should == true
+        end
+
+        it 'should NOT intercept provided exceptions when not matched' do
+          my_error = Class.new(StandardError)
+          EE.intercept(my_error)
+
+          begin
+            raise RuntimeError
+          rescue => ex
+            ex.is_a?(RuntimeError).should == true
+          end
+        end
+      end
+
+      describe "multiple exceptions" do
+        it 'should intercept provided exceptions when given parameters (and no block)' do
+          errors = Array.new(3) { Class.new(StandardError) }
+
+          EE.intercept(*errors)
+
+          errors.each do |my_error|
+            raise my_error
+            EE.exception_intercepted?.should == true
+          end
+        end
+
+        it 'should NOT intercept provided exceptions when not matched' do
+          errors = Array.new(3) { Class.new(StandardError) }
+
+          EE.intercept(*errors)
+
+          errors.each do |my_error|
+            begin
+              raise RuntimeError
+            rescue => ex
+              ex.is_a?(RuntimeError).should == true
+            end
+          end
+        end
+      end
+
+    end
+
     describe "class" do
       describe "first frame" do
         it  "should intercept exception based on first frame's method name" do
