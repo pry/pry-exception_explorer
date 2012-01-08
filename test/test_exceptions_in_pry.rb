@@ -4,6 +4,10 @@ O = OpenStruct.new
 
 describe PryExceptionExplorer do
 
+  before do
+    PryExceptionExplorer.wrap_active = true
+  end
+
   after do
     O.clear
   end
