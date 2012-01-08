@@ -65,3 +65,5 @@ describe PryExceptionExplorer do
     end
   end
 end
+
+Object.send(:remove_const, :O)

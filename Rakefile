@@ -43,6 +43,8 @@ task :reinstall => :gems do
   sh "gem install #{direc}/pkg/pry-exception_explorer-#{PryExceptionExplorer::VERSION}.gem"
 end
 
+task :default => :test
+
 desc "run tests"
 task :test do
   sh "bacon -Itest -rubygems -a"
