@@ -6,9 +6,16 @@ unless Object.const_defined? 'PryExceptionExplorer'
 end
 
 require 'bacon'
+require 'ostruct'
 
 puts "Testing pry-exception_explorer version #{PryExceptionExplorer::VERSION}..."
 puts "Ruby version: #{RUBY_VERSION}"
+
+class OpenStruct
+  def clear
+    @table.clear
+  end
+end
 
 EE = PryExceptionExplorer
 

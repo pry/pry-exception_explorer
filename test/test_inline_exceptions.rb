@@ -7,6 +7,8 @@ O = OpenStruct.new
 prev_wrap_state = PryExceptionExplorer.wrap_active
 PryExceptionExplorer.wrap_active = false
 
+prev_intercept_state = PryExceptionExplorer.intercept_block
+
 describe PryExceptionExplorer do
 
   before do
@@ -21,6 +23,7 @@ describe PryExceptionExplorer do
 
   after do
     Pry.config.input.rewind
+    O.clear
   end
 
   describe "PryExceptionExplorer.intercept" do
@@ -193,8 +196,8 @@ describe PryExceptionExplorer do
 
   end
 
-  describe "Ensure call-stack is popped when pry session ends" do
-    it 'should pop the call-stack after session ends' do
+  describe "call-stack management" do
+    it 'should pop the call-stack after session ends (continue)' do
       EE.intercept { |frame, ex| frame.prev.prev.method_name == :ratty }
 
       redirect_pry_io(InputTester.new(
@@ -207,8 +210,53 @@ describe PryExceptionExplorer do
       PryStackExplorer.frame_managers(O._pry_).count.should == 0
     end
 
+    it 'should pop the call-stack after session ends (exit)' do
+      EE.intercept { |frame, ex| frame.prev.prev.method_name == :ratty }
+
+      redirect_pry_io(InputTester.new(
+                                      "O.stack_count = PryStackExplorer.frame_managers(_pry_).count",
+                                      "O._pry_ = _pry_",
+                                      "exit"), StringIO.new) do
+        begin
+          Ratty.new.ratty
+        rescue
+        end
+      end
+      O.stack_count.should == 1
+      PryStackExplorer.frame_managers(O._pry_).count.should == 0
+    end
+
+    describe "nested exceptions" do
+      it 'Each successive exception interception should be managed by its own pry instance and have its own call-stack' do
+        EE.intercept { |frame, ex| frame.prev.prev.method_name == :ratty }
+
+        redirect_pry_io(InputTester.new(
+                                        "O.first_stack_count = PryStackExplorer.frame_managers(_pry_).count",
+                                        "O._pry_ = _pry_",
+                                        "EE.intercept(ArgumentError)",
+                                        "raise ArgumentError",
+                                        "O._pry_2 = _pry_",
+                                        "O.second_stack_count = PryStackExplorer.frame_managers(_pry_).count",
+                                        "continue-exception",
+                                        "continue-exception"), StringIO.new) do
+          Ratty.new.ratty
+        end
+
+        O._pry_.should.not == O._pry_2
+        O.first_stack_count.should == 1
+        O.second_stack_count.should == 1
+        PryStackExplorer.frame_managers(O._pry_).count.should == 0
+        PryStackExplorer.frame_managers(O._pry_2).count.should == 0
+      end
+
+    end
+
   end
 
 end
 
+# restore to default
 PryExceptionExplorer.wrap_active = prev_wrap_state
+PryExceptionExplorer.intercept &prev_intercept_state
+
+Object.send(:remove_const, :O)

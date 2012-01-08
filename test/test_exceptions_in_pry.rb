@@ -1,13 +1,16 @@
 require 'helper'
 
+O = OpenStruct.new
+
 describe PryExceptionExplorer do
+
+  after do
+    O.clear
+  end
 
   describe "Exceptions caught by Pry" do
     describe "enter-exception" do
       it  "should be able to enter an exception caught by pry" do
-
-        PryExceptionExplorer.intercept { true }
-
         # there are 3 types of situations where exception_explorer is invoked:
         # 1. when 'wrap' is used, i.e only exceptions that bubble to
         #    the top are intercepted.
@@ -22,8 +25,43 @@ describe PryExceptionExplorer do
         # `enter-exception` to start the session.
         #
         # This test is for type 3.
+        PryExceptionExplorer.intercept { true }
+        redirect_pry_io(InputTester.new("Ratty.new.ratty",
+                                        "enter-exception",
+                                        "O.method_name = __method__",
+                                        "exit", StringIO.new)) do
+          Pry.start
+        end
+
+        O.method_name.should == :toad
+      end
+
+      it "should have access to exception's caller" do
+        PryExceptionExplorer.intercept { true }
         mock_pry("Ratty.new.ratty", "enter-exception", "show-stack", "exit").should =~ /toad.*?weasel.*?ratty/m
       end
+
+       describe "exit-exception" do
+        it  "should exit an exception and return to initial context" do
+          PryExceptionExplorer.intercept { true }
+          redirect_pry_io(InputTester.new("Ratty.new.ratty",
+                                          "O.initial_self = self",
+                                          "enter-exception",
+                                          "O.exception_self = self",
+                                          "exit-exception",
+                                          "O.return_self = self",
+                                          "exit", StringIO.new)) do
+            Pry.start(0)
+         end
+
+          O.initial_self.should == 0
+          O.initial_self.should == O.return_self
+
+          # actual exception context is Toad, as call chain is:
+          # Ratty -> Weasel -> Toad (raise is here)
+          O.exception_self.is_a?(Toad).should == true
+        end
+       end
     end
   end
 end

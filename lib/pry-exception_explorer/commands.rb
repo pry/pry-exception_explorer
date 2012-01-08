@@ -18,8 +18,12 @@ PryExceptionExplorer::Commands = Pry::CommandSet.new do
   command "exit-exception", "Leave the context of the current exception." do
     fm = PryStackExplorer.frame_manager(_pry_)
     if fm && fm.user[:exception]
-      PryStackExplorer.pop_frame_manager(_pry_)
-      PryStackExplorer.frame_manager(_pry_).refresh_frame
+      popped_fm = PryStackExplorer.pop_frame_manager(_pry_)
+      if PryStackExplorer.frame_manager(_pry_)
+        PryStackExplorer.frame_manager(_pry_).refresh_frame
+      else
+        _pry_.binding_stack[-1] = popped_fm.prior_binding
+      end
     else
       output.puts "You are not in an exception!"
     end
