@@ -45,6 +45,11 @@ end
 
 task :default => :test
 
+desc "Show version"
+task :version do
+  puts "PryExceptionExplorer version: #{PryExceptionExplorer::VERSION}"
+end
+
 desc "run tests"
 task :test do
   sh "bacon -Itest -rubygems -a"
