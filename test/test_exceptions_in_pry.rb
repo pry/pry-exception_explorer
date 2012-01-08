@@ -41,27 +41,28 @@ describe PryExceptionExplorer do
         mock_pry("Ratty.new.ratty", "enter-exception", "show-stack", "exit").should =~ /toad.*?weasel.*?ratty/m
       end
 
-       # describe "exit-exception" do
-       #  it  "should exit an exception and return to initial context" do
-       #    PryExceptionExplorer.intercept { true }
-       #    redirect_pry_io(InputTester.new("Ratty.new.ratty",
-       #                                    "O.initial_self = self",
-       #                                    "enter-exception",
-       #                                    "O.exception_self = self",
-       #                                    "exit-exception",
-       #                                    "O.return_self = self",
-       #                                    "exit", StringIO.new)) do
-       #      Pry.start(0)
-       #   end
+      #      FIXME: THIS TEST IS BREAKING TRAVIS
+      describe "exit-exception" do
+        it  "should exit an exception and return to initial context" do
+          PryExceptionExplorer.intercept { true }
+          redirect_pry_io(InputTester.new("Ratty.new.ratty",
+                                          "O.initial_self = self",
+                                          "enter-exception",
+                                          "O.exception_self = self",
+                                          "exit-exception",
+                                          "O.return_self = self",
+                                          "exit-all", StringIO.new)) do
+            Pry.start(binding)
+          end
 
-       #    O.initial_self.should == 0
-       #    O.initial_self.should == O.return_self
+          O.initial_self.should == self
+          O.initial_self.should == O.return_self
 
-       #    # actual exception context is Toad, as call chain is:
-       #    # Ratty -> Weasel -> Toad (raise is here)
-       #    O.exception_self.is_a?(Toad).should == true
-       #  end
-       # end
+          # actual exception context is Toad, as call chain is:
+          # Ratty -> Weasel -> Toad (raise is here)
+          O.exception_self.is_a?(Toad).should == true
+        end
+      end
     end
   end
 end
