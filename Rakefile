@@ -43,6 +43,11 @@ task :reinstall => :gems do
   sh "gem install #{direc}/pkg/pry-exception_explorer-#{PryExceptionExplorer::VERSION}.gem"
 end
 
+desc "Run example"
+task :example do
+  sh "ruby -I#{direc}/lib/ #{direc}/examples/example.rb "
+end
+
 task :default => :test
 
 desc "Show version"
