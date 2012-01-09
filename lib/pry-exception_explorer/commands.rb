@@ -15,17 +15,43 @@ PryExceptionExplorer::Commands = Pry::CommandSet.new do
     end
   end
 
-  command "exit-exception", "Leave the context of the current exception." do
-    fm = PryStackExplorer.frame_manager(_pry_)
-    if fm && fm.user[:exception]
-      popped_fm = PryStackExplorer.pop_frame_manager(_pry_)
-      if PryStackExplorer.frame_manager(_pry_)
-        PryStackExplorer.frame_manager(_pry_).refresh_frame
+  command_class "exit-exception", "Leave the context of the current exception." do
+    banner <<-BANNER
+      Usage: exit-exception
+      Exit active exception and return to containing context.
+    BANNER
+
+    def process
+      if !in_exception?
+        raise Pry::CommandError, "You are not in an exception!"
+      elsif !prior_context_exists?
+        PryStackExplorer.pop_frame_manager(_pry_)
+        run "exit-all"
       else
-        _pry_.binding_stack[-1] = popped_fm.prior_binding
+        popped_fm = PryStackExplorer.pop_frame_manager(_pry_)
+        if frame_manager
+          frame_manager.refresh_frame
+        else
+          _pry_.binding_stack[-1] = popped_fm.prior_binding
+        end
       end
-    else
-      output.puts "You are not in an exception!"
+    end
+
+    private
+    def frame_manager
+      PryStackExplorer.frame_manager(_pry_)
+    end
+
+    def frame_managers
+      PryStackExplorer.frame_managers(_pry_)
+    end
+
+    def prior_context_exists?
+      frame_managers.count > 1 || frame_manager.prior_binding
+    end
+
+    def in_exception?
+      frame_manager && frame_manager.user[:exception]
     end
   end
 
