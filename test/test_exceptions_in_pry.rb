@@ -5,6 +5,7 @@ O = OpenStruct.new
 describe PryExceptionExplorer do
 
   before do
+    PryExceptionExplorer.intercept { true }
     PryExceptionExplorer.wrap_active = true
   end
 
@@ -29,7 +30,6 @@ describe PryExceptionExplorer do
         # `enter-exception` to start the session.
         #
         # This test is for type 3.
-        PryExceptionExplorer.intercept { true }
         redirect_pry_io(InputTester.new("Ratty.new.ratty",
                                         "enter-exception",
                                         "O.method_name = __method__",
@@ -41,14 +41,36 @@ describe PryExceptionExplorer do
       end
 
       it "should have access to exception's caller" do
-        PryExceptionExplorer.intercept { true }
         mock_pry("Ratty.new.ratty", "enter-exception", "show-stack", "exit").should =~ /toad.*?weasel.*?ratty/m
       end
 
-      #      FIXME: THIS TEST IS BREAKING TRAVIS
       describe "exit-exception" do
+        it 'should display error message when exit-exception used outside of exception context' do
+          mock_pry("exit-exception").should =~ /You are not in an exception!/
+        end
+
+       it  "should exit a nested exception and correctly pop FrameManagers" do
+          redirect_pry_io(InputTester.new("Ratty.new.ratty",
+                                          "enter-exception",
+                                          "raise 'yo'",
+                                          "enter-exception",
+                                          "O.first_pry = _pry_",
+                                          "O.first_count = PryStackExplorer.frame_managers(_pry_).count",
+                                          "exit-exception",
+                                          "O.second_pry = _pry_",
+                                          "O.second_count = PryStackExplorer.frame_managers(_pry_).count",
+                                          "exit-exception",
+                                          "exit-all", StringIO.new)) do
+            Pry.start(binding)
+          end
+
+          O.first_pry.should == O.second_pry
+          O.first_count.should == 2
+          O.second_count.should == 1
+          PryStackExplorer.frame_managers(O.first_pry).count.should == 0
+        end
+
         it  "should exit an exception and return to initial context" do
-          PryExceptionExplorer.intercept { true }
           redirect_pry_io(InputTester.new("Ratty.new.ratty",
                                           "O.initial_self = self",
                                           "enter-exception",

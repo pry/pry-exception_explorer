@@ -18,6 +18,24 @@ describe PryExceptionExplorer do
 
   describe "PryExceptionExplorer.wrap" do
 
+    # use of exit-exception inside a wrapped exception is weird
+    # (because exit-exception is really designed for pry exceptions)
+    # but when we do receive one, we should exit out of pry
+    # altogether.
+    # This test is weird as we can't use lambda { }.should.not.raise, as we override
+    # 'raise' method ourself, which kills bacon's functionality here.
+    it 'should exit out of Pry session when using exit-exception' do
+      PryExceptionExplorer.intercept { true }
+
+      x = :no_exception_raised
+      redirect_pry_io(InputTester.new("exit-exception"), $stdout) do
+        PryExceptionExplorer.wrap do
+          Ratty.new.ratty
+        end
+      end
+      x.should == :no_exception_raised
+    end
+
     it 'should default to capturing ALL exceptions' do
       PryExceptionExplorer.wrap do
         raise CaughtException, "catch me if u can"
