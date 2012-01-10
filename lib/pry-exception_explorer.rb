@@ -15,6 +15,10 @@ module PryExceptionExplorer
   CONTINUE_INLINE_EXCEPTION = Object.new
 
   class << self
+
+    # @return [Boolean] Whether `PryStackExplorer` is enabled.
+    attr_accessor :enabled
+
     def wrap_active=(v)
       Thread.current[:__pry_exception_explorer_wrap__] = v
     end
@@ -24,6 +28,7 @@ module PryExceptionExplorer
     end
 
     alias_method :wrap_active?, :wrap_active
+    alias_method :enabled?, :enabled
   end
 
   self.wrap_active = false
@@ -83,6 +88,7 @@ end
 
 class Object
   def raise(exception = RuntimeError, string = nil, array = caller)
+
     if exception.is_a?(String)
       string = exception
       exception = RuntimeError
@@ -90,6 +96,11 @@ class Object
 
     ex = exception.exception(string)
     ex.set_backtrace(array)
+
+    # revert to normal exception behaviour if EE not enabled.
+    if !PryExceptionExplorer.enabled?
+      return super(ex)
+    end
 
     if PryExceptionExplorer.should_capture_exception?(ex, binding.of_caller(1))
       ex.exception_call_stack = binding.callers.tap(&:shift)
@@ -118,3 +129,10 @@ PryExceptionExplorer.wrap_active = true
 PryExceptionExplorer.intercept { true }
 
 Pry.config.commands.import PryExceptionExplorer::Commands
+
+# disable by default
+PryExceptionExplorer.enabled = false
+
+Pry.config.hooks.add_hook(:when_started, :try_enable_exception_explorer) do
+  PryExceptionExplorer.enabled = true if Pry.cli
+end

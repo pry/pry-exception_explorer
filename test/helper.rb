@@ -106,3 +106,4 @@ def mock_pry(*args)
   output.string
 end
 
+PryExceptionExplorer.enabled = true

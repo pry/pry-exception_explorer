@@ -25,7 +25,6 @@ PryExceptionExplorer::Commands = Pry::CommandSet.new do
       if !in_exception?
         raise Pry::CommandError, "You are not in an exception!"
       elsif !prior_context_exists?
-        PryStackExplorer.pop_frame_manager(_pry_)
         run "exit-all"
       else
         popped_fm = PryStackExplorer.pop_frame_manager(_pry_)
