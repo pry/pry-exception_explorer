@@ -5,15 +5,20 @@ require 'pry-exception_explorer/exception_wrap'
 CaughtException   = Class.new(StandardError)
 UncaughtException = Class.new(StandardError)
 
+
 describe PryExceptionExplorer do
+
 
   before do
     Pry.config.input = StringIO.new("exit :caught\n")
     Pry.config.output = StringIO.new
+    Pry.config.hooks.add_hook(:when_started, :save_caller_bindings, &WhenStartedHook)
+    Pry.config.hooks.add_hook(:after_session, :delete_frame_manager, &AfterSessionHook)
   end
 
   after do
-    Pry.config.hooks.clear(:when_started)
+    Pry.config.hooks.delete_hook(:when_started, :save_caller_bindings)
+    Pry.config.hooks.delete_hook(:after_session, :delete_frame_manager)
   end
 
   describe "PryExceptionExplorer.wrap" do
