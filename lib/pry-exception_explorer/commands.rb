@@ -5,9 +5,10 @@ PryExceptionExplorer::Commands = Pry::CommandSet.new do
   command "enter-exception", "Enter the context of the last exception" do
     ex = _pry_.last_exception
     if ex && ex.exception_call_stack
-      _pry_.backtrace = ex.backtrace
+ #     _pry_.backtrace = ex.backtrace
       PryStackExplorer.create_and_push_frame_manager(ex.exception_call_stack, _pry_)
-      PryStackExplorer.frame_manager(_pry_).user[:exception] = ex
+#      PryStackExplorer.frame_manager(_pry_).user[:exception] = ex
+      PryExceptionExplorer.setup_exception_context(ex, _pry_)
       PryStackExplorer.frame_manager(_pry_).refresh_frame
     elsif ex
       output.puts "Current exception can't be entered! (perhaps a C exception)"

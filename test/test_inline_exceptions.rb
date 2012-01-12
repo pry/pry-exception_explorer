@@ -19,10 +19,14 @@ describe PryExceptionExplorer do
     # started) that this is registered by setting state on `O`
     Pry.config.input = StringIO.new("O.exception_intercepted = true\ncontinue-exception")
     Pry.config.output = StringIO.new
+    Pry.config.hooks.add_hook(:when_started, :save_caller_bindings, &WhenStartedHook)
+    Pry.config.hooks.add_hook(:after_session, :delete_frame_manager, &AfterSessionHook)
   end
 
   after do
     Pry.config.input.rewind
+    Pry.config.hooks.delete_hook(:when_started, :save_caller_bindings)
+    Pry.config.hooks.delete_hook(:after_session, :delete_frame_manager)
     O.clear
   end
 

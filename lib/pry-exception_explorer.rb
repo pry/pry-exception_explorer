@@ -16,8 +16,17 @@ module PryExceptionExplorer
 
   class << self
 
-    # @return [Boolean] Whether `PryStackExplorer` is enabled.
-    attr_accessor :enabled
+    def enabled=(v)
+      Thread.current[:__pry_exception_explorer_enabled__] = v
+    end
+
+    def enabled
+      !!Thread.current[:__pry_exception_explorer_enabled__]
+    end
+
+    def wrap_active
+      !!Thread.current[:__pry_exception_explorer_wrap__]
+    end
 
     def wrap_active=(v)
       Thread.current[:__pry_exception_explorer_wrap__] = v
@@ -57,17 +66,21 @@ module PryExceptionExplorer
     end
   end
 
-  def self.enter_exception_inline(ex)
-    _pry_ = Pry.new
+  def self.setup_exception_context(ex, _pry_, options={})
+    _pry_.last_exception = ex
+    _pry_.backtrace = ex.backtrace
 
-    Pry.initial_session_setup
-    PryStackExplorer.create_and_push_frame_manager(ex.exception_call_stack, _pry_)
     PryStackExplorer.frame_manager(_pry_).user[:exception]        = ex
-    PryStackExplorer.frame_manager(_pry_).user[:inline_exception] = true
-    _pry_.repl(ex.exception_call_stack.first)
+    PryStackExplorer.frame_manager(_pry_).user[:inline_exception] = !!options[:inline]
+  end
 
-  ensure
-    PryStackExplorer.clear_frame_managers(_pry_)
+  def self.enter_exception(ex, options={})
+    hooks = Pry.config.hooks.dup.add_hook(:before_session, :set_exception_flag) do |_, _, _pry_|
+
+      setup_exception_context(ex, _pry_, options)
+    end
+
+    Pry.start self, :call_stack => ex.exception_call_stack, :hooks => hooks
   end
 end
 
@@ -107,7 +120,7 @@ class Object
       ex.should_capture       = true
 
       if !PryExceptionExplorer.wrap_active?
-        retval = PryExceptionExplorer.enter_exception_inline(ex)
+        retval = PryExceptionExplorer.enter_exception(ex, :inline => true)
       end
     end
 
@@ -119,7 +132,6 @@ class Object
     end
   end
 end
-
 
 # Let exceptions get caught by Pry REPL loop (i.e dont catch
 # immediately at point of 'raise')
