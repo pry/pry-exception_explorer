@@ -90,55 +90,112 @@ describe PryExceptionExplorer do
         end
 
 
-        it  "should correctly update _pry_.backtrace to reflect exception context" do
-          o = Object.new
-          class << o
-            attr_accessor :first_backtrace, :actual_first_backtrace
-            attr_accessor :second_backtrace, :actual_second_backtrace
+        describe "_ex_" do
+          it  "should correctly update _ex_ to reflect exception context" do
+            o = Object.new
+            class << o
+              attr_accessor :first_backtrace, :actual_first_backtrace
+              attr_accessor :second_backtrace, :actual_second_backtrace
+            end
+
+
+            redirect_pry_io(InputTester.new("raise ArgumentError, 'yo yo'",
+                                            "self.first_backtrace = _ex_.backtrace",
+                                            "enter-exception",
+                                            "self.actual_first_backtrace = _ex_.backtrace",
+                                            "raise RuntimeError, 'bing bong'",
+                                            "self.second_backtrace = _ex_.backtrace",
+                                            "enter-exception",
+                                            "self.actual_second_backtrace = _ex_.backtrace",
+                                            "exit-all", StringIO.new)) do
+              Pry.start(o)
+            end
+
+            o.first_backtrace.should == o.actual_first_backtrace
+            o.second_backtrace.should == o.actual_second_backtrace
+
+            # ensure nothing weird going on
+            o.first_backtrace.should.not == o.second_backtrace
           end
 
+          it  "should correctly restore _ex_ when exiting out of exceptions" do
+            o = Object.new
+            class << o
+              attr_accessor :first_backtrace, :restored_first_backtrace
+              attr_accessor :second_backtrace, :restored_second_backtrace
+            end
 
-          redirect_pry_io(InputTester.new("raise ArgumentError, 'yo yo'",
-                                          "self.first_backtrace = _ex_.backtrace",
-                                          "enter-exception",
-                                          "self.actual_first_backtrace = _ex_.backtrace",
-                                          "raise RuntimeError, 'bing bong'",
-                                          "self.second_backtrace = _ex_.backtrace",
-                                          "enter-exception",
-                                          "self.actual_second_backtrace = _ex_.backtrace",
-                                          "exit-all", StringIO.new)) do
-            Pry.start(o)
+
+            redirect_pry_io(InputTester.new("raise ArgumentError, 'yo yo'",
+                                            "enter-exception",
+                                            "self.first_backtrace = _ex_.backtrace",
+                                            "raise RuntimeError, 'bing bong'",
+                                            "enter-exception",
+                                            "self.second_backtrace = _ex_.backtrace",
+                                            "exit-exception",
+                                            "exit-exception",
+                                            "self.restored_first_backtrace = _ex_.backtrace",
+                                            "exit-all", StringIO.new)) do
+              Pry.start(o)
+            end
+
+            # just ensure nothing weird is happening (probably unnecessary)
+            o.first_backtrace.should.not == o.second_backtrace
+
+            o.first_backtrace.should == o.restored_first_backtrace
           end
-
-          o.first_backtrace.should == o.actual_first_backtrace
-          o.second_backtrace.should == o.actual_second_backtrace
         end
 
-        it  "should correctly restore _pry_.backtrace when exiting out of exceptions" do
-          o = Object.new
-          class << o
-            attr_accessor :first_backtrace, :restored_first_backtrace
-            attr_accessor :second_backtrace, :restored_second_backtrace
+        describe "_pry_.backtrace" do
+          it  "should correctly update _pry_.backtrace to reflect exception context" do
+            o = Object.new
+            class << o
+              attr_accessor :first_backtrace, :ex_first_backtrace
+              attr_accessor :second_backtrace, :ex_second_backtrace
+            end
+
+
+            redirect_pry_io(InputTester.new("raise ArgumentError, 'yo yo'",
+                                            "enter-exception",
+                                            "self.first_backtrace = _pry_.backtrace",
+                                            "self.ex_first_backtrace = _ex_.backtrace",
+                                            "raise RuntimeError, 'bing bong'",
+                                            "enter-exception",
+                                            "self.second_backtrace = _pry_.backtrace",
+                                            "self.ex_second_backtrace = _ex_.backtrace",
+                                            "exit-all", StringIO.new)) do
+              Pry.start(o)
+            end
+
+            o.first_backtrace.should == o.ex_first_backtrace
+            o.second_backtrace.should == o.ex_second_backtrace
+
+            o.first_backtrace.should.not == o.second_backtrace
           end
 
+          it  "should correctly restore _pry_.backtrace when exiting out of exceptions" do
+            o = Object.new
+            class << o
+              attr_accessor :first_backtrace, :restored_first_backtrace
+              attr_accessor :second_backtrace, :restored_second_backtrace
+            end
 
-          redirect_pry_io(InputTester.new("raise ArgumentError, 'yo yo'",
-                                          "enter-exception",
-                                          "self.first_backtrace = _ex_.backtrace",
-                                          "raise RuntimeError, 'bing bong'",
-                                          "enter-exception",
-                                          "self.second_backtrace = _ex_.backtrace",
-                                          "exit-exception",
-                                          "exit-exception",
-                                          "self.restored_first_backtrace = _ex_.backtrace",
-                                          "exit-all", StringIO.new)) do
-            Pry.start(o)
+            redirect_pry_io(InputTester.new("raise ArgumentError, 'yo yo'",
+                                            "enter-exception",
+                                            "self.first_backtrace = _pry_.backtrace",
+                                            "raise RuntimeError, 'bing bong'",
+                                            "enter-exception",
+                                            "self.second_backtrace = _pry_.backtrace",
+                                            "exit-exception",
+                                            "self.restored_first_backtrace = _pry_.backtrace",
+                                            "exit-all", StringIO.new)) do
+
+              Pry.start(o)
+            end
+
+            o.first_backtrace.should.not == o.second_backtrace
+            o.first_backtrace.should == o.restored_first_backtrace
           end
-
-          # just ensure nothing weird is happening (probably unnecessary)
-          o.first_backtrace.should.not == o.second_backtrace
-
-          o.first_backtrace.should == o.restored_first_backtrace
         end
 
 

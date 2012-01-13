@@ -23,6 +23,44 @@ describe PryExceptionExplorer do
 
   describe "PryExceptionExplorer.wrap" do
 
+    describe "_ex_" do
+      it 'should correctly set _ex_ inside session (set to raised exception)' do
+        ex = Class.new(StandardError)
+        o = Object.new
+        class << o; attr_accessor :ex; self; end.class_eval { define_method(:raze) { raise ex } }
+
+        PryExceptionExplorer.intercept { true }
+
+
+        redirect_pry_io(InputTester.new("@ex = _ex_", "exit-all")) do
+          PryExceptionExplorer.wrap do
+            o.raze
+          end
+        end
+
+        o.ex.is_a?(ex).should == true
+      end
+    end
+
+    describe "_pry_.backtrace" do
+      it 'should correctly set _pry_ inside session to backtrace of raised exception' do
+        ex = Class.new(StandardError)
+        o = Object.new
+        class << o; attr_accessor :ex, :pry_bt; self; end.class_eval { define_method(:raze) { raise ex } }
+
+        PryExceptionExplorer.intercept { true }
+
+
+        redirect_pry_io(InputTester.new("@ex = _ex_", "@pry_bt = _pry_.backtrace", "exit-all")) do
+          PryExceptionExplorer.wrap do
+            o.raze
+          end
+        end
+
+        o.pry_bt.should == o.ex.backtrace
+      end
+    end
+
     # use of exit-exception inside a wrapped exception is weird
     # (because exit-exception is really designed for pry exceptions)
     # but when we do receive one, we should exit out of pry
