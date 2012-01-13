@@ -125,7 +125,6 @@ describe PryExceptionExplorer do
               attr_accessor :second_backtrace, :restored_second_backtrace
             end
 
-
             redirect_pry_io(InputTester.new("raise ArgumentError, 'yo yo'",
                                             "enter-exception",
                                             "self.first_backtrace = _ex_.backtrace",
@@ -153,7 +152,6 @@ describe PryExceptionExplorer do
               attr_accessor :first_backtrace, :ex_first_backtrace
               attr_accessor :second_backtrace, :ex_second_backtrace
             end
-
 
             redirect_pry_io(InputTester.new("raise ArgumentError, 'yo yo'",
                                             "enter-exception",
