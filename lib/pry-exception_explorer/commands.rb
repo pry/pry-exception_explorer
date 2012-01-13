@@ -33,6 +33,7 @@ PryExceptionExplorer::Commands = Pry::CommandSet.new do
         else
           _pry_.binding_stack[-1] = popped_fm.prior_binding
         end
+        _pry_.last_exception = popped_fm.user[:exception]
       end
     end
 

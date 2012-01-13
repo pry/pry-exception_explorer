@@ -88,6 +88,60 @@ describe PryExceptionExplorer do
           # Ratty -> Weasel -> Toad (raise is here)
           O.exception_self.is_a?(Toad).should == true
         end
+
+
+        it  "should correctly update _pry_.backtrace to reflect exception context" do
+          o = Object.new
+          class << o
+            attr_accessor :first_backtrace, :actual_first_backtrace
+            attr_accessor :second_backtrace, :actual_second_backtrace
+          end
+
+
+          redirect_pry_io(InputTester.new("raise ArgumentError, 'yo yo'",
+                                          "self.first_backtrace = _ex_.backtrace",
+                                          "enter-exception",
+                                          "self.actual_first_backtrace = _ex_.backtrace",
+                                          "raise RuntimeError, 'bing bong'",
+                                          "self.second_backtrace = _ex_.backtrace",
+                                          "enter-exception",
+                                          "self.actual_second_backtrace = _ex_.backtrace",
+                                          "exit-all", StringIO.new)) do
+            Pry.start(o)
+          end
+
+          o.first_backtrace.should == o.actual_first_backtrace
+          o.second_backtrace.should == o.actual_second_backtrace
+        end
+
+        it  "should correctly restore _pry_.backtrace when exiting out of exceptions" do
+          o = Object.new
+          class << o
+            attr_accessor :first_backtrace, :restored_first_backtrace
+            attr_accessor :second_backtrace, :restored_second_backtrace
+          end
+
+
+          redirect_pry_io(InputTester.new("raise ArgumentError, 'yo yo'",
+                                          "enter-exception",
+                                          "self.first_backtrace = _ex_.backtrace",
+                                          "raise RuntimeError, 'bing bong'",
+                                          "enter-exception",
+                                          "self.second_backtrace = _ex_.backtrace",
+                                          "exit-exception",
+                                          "exit-exception",
+                                          "self.restored_first_backtrace = _ex_.backtrace",
+                                          "exit-all", StringIO.new)) do
+            Pry.start(o)
+          end
+
+          # just ensure nothing weird is happening (probably unnecessary)
+          o.first_backtrace.should.not == o.second_backtrace
+
+          o.first_backtrace.should == o.restored_first_backtrace
+        end
+
+
       end
     end
   end
