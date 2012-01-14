@@ -30,6 +30,26 @@ describe PryExceptionExplorer do
     O.clear
   end
 
+  describe "enabled = false" do
+    it 'should prevent interception of an exception' do
+      old_e = PryExceptionExplorer.enabled
+      PryExceptionExplorer.enabled = false
+
+      my_error = Class.new(StandardError)
+      EE.intercept(my_error)
+
+      begin
+        raise my_error
+      rescue => ex
+        exception = ex
+      end
+
+      exception.is_a?(my_error).should == true
+
+      PryExceptionExplorer.enabled = old_e
+    end
+  end
+
   describe "PryExceptionExplorer.intercept" do
     describe "special case exception-only syntax" do
 

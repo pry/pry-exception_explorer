@@ -50,7 +50,6 @@ describe PryExceptionExplorer do
 
         PryExceptionExplorer.intercept { true }
 
-
         redirect_pry_io(InputTester.new("@ex = _ex_", "@pry_bt = _pry_.backtrace", "exit-all")) do
           PryExceptionExplorer.wrap do
             o.raze
@@ -58,6 +57,17 @@ describe PryExceptionExplorer do
         end
 
         o.pry_bt.should == o.ex.backtrace
+      end
+    end
+
+    describe "enabled = false" do
+      it 'should have no effect for wrap block (which sets enabled=true internally)' do
+        PryExceptionExplorer.enabled = false
+        PryExceptionExplorer.wrap do
+          raise CaughtException, "catch me if u can"
+        end.should == :caught
+
+        PryExceptionExplorer.enabled.should == false
       end
     end
 

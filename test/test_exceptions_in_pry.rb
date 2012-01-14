@@ -44,6 +44,17 @@ describe PryExceptionExplorer do
         mock_pry("Ratty.new.ratty", "enter-exception", "show-stack", "exit").should =~ /toad.*?weasel.*?ratty/m
       end
 
+      describe "enabled = false" do
+        it 'should prevent moving into an exception' do
+          old_e = PryExceptionExplorer.enabled
+          PryExceptionExplorer.enabled = false
+
+          mock_pry("Ratty.new.ratty", "enter-exception", "exit-all").should =~ /can't be entered/
+
+          PryExceptionExplorer.enabled = old_e
+        end
+      end
+
       describe "exit-exception" do
         it 'should display error message when exit-exception used outside of exception context' do
           mock_pry("exit-exception").should =~ /You are not in an exception!/
