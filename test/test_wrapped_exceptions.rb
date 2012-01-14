@@ -10,8 +10,8 @@ describe PryExceptionExplorer do
   before do
     Pry.config.input = StringIO.new("exit :caught\n")
     Pry.config.output = StringIO.new
-    Pry.config.hooks.add_hook(:when_started, :save_caller_bindings, &WhenStartedHook)
-    Pry.config.hooks.add_hook(:after_session, :delete_frame_manager, &AfterSessionHook)
+    Pry.config.hooks.add_hook(:when_started, :save_caller_bindings, WhenStartedHook)
+    Pry.config.hooks.add_hook(:after_session, :delete_frame_manager, AfterSessionHook)
   end
 
   after do
