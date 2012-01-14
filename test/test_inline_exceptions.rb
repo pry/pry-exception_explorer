@@ -275,6 +275,23 @@ describe PryExceptionExplorer do
 
     end
 
+    describe "exit-exception" do
+      it 'should exit session and raise exception' do
+        my_error = Class.new(StandardError)
+        EE.intercept(my_error)
+
+        begin
+          redirect_pry_io(InputTester.new("exit-exception")) do
+            raise my_error
+          end
+        rescue => ex
+          exception = ex
+        end
+
+        exception.is_a?(my_error).should == true
+      end
+    end
+
   end
 
 end

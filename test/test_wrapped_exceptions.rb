@@ -5,9 +5,7 @@ require 'pry-exception_explorer/exception_wrap'
 CaughtException   = Class.new(StandardError)
 UncaughtException = Class.new(StandardError)
 
-
 describe PryExceptionExplorer do
-
 
   before do
     Pry.config.input = StringIO.new("exit :caught\n")
@@ -30,7 +28,6 @@ describe PryExceptionExplorer do
         class << o; attr_accessor :ex; self; end.class_eval { define_method(:raze) { raise ex } }
 
         PryExceptionExplorer.intercept { true }
-
 
         redirect_pry_io(InputTester.new("@ex = _ex_", "exit-all")) do
           PryExceptionExplorer.wrap do
