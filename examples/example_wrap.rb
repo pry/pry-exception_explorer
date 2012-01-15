@@ -4,7 +4,6 @@ unless Object.const_defined? :PryExceptionExplorer
 end
 
 require 'pry-exception_explorer'
-require 'pry-exception_explorer/exception_wrap'
 
 def alpha
   name = "john"

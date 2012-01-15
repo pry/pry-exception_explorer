@@ -1,7 +1,5 @@
 require 'helper'
 
-require 'pry-exception_explorer/exception_wrap'
-
 CaughtException   = Class.new(StandardError)
 UncaughtException = Class.new(StandardError)
 
