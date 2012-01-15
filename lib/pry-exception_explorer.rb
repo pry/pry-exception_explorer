@@ -1,11 +1,11 @@
 # pry-exception_explorer.rb
-# (C) John Mair (banisterfiend); MIT license
+# (C) 2012 John Mair (banisterfiend); MIT license
 
 require 'pry-stack_explorer'
 require "pry-exception_explorer/version"
 require "pry-exception_explorer/lazy_frame"
 require "pry-exception_explorer/commands"
-require "pry"
+require "pry-exception_explorer/core_ext"
 
 if RUBY_VERSION =~ /1.9/
   require 'continuation'
@@ -143,72 +143,33 @@ module PryExceptionExplorer
 
       Pry.start self, :call_stack => ex.exception_call_stack, :hooks => hooks
     end
-  end
-end
 
-class Exception
-  NoContinuation = Class.new(StandardError)
+    # Set initial state
+    def init
+      # disable by default (intercept exceptions inline)
+      PryExceptionExplorer.wrap_active = false
 
-  attr_accessor :continuation
-  attr_accessor :exception_call_stack
-  attr_accessor :should_intercept
+      # default is to capture all exceptions
+      PryExceptionExplorer.intercept { true }
 
-  def continue
-    raise NoContinuation unless continuation.respond_to?(:call)
-    continuation.call
-  end
-
-  alias_method :should_intercept?, :should_intercept
-end
-
-class Object
-  def raise(exception = RuntimeError, string = nil, array = caller)
-
-    if exception.is_a?(String)
-      string = exception
-      exception = RuntimeError
-    end
-
-    ex = exception.exception(string)
-    ex.set_backtrace(array)
-
-    # revert to normal exception behaviour if EE not enabled.
-    if !PryExceptionExplorer.enabled?
-      return super(ex)
-    end
-
-    if PryExceptionExplorer.should_intercept_exception?(binding.of_caller(1), ex)
-      ex.exception_call_stack = binding.callers.tap(&:shift)
-      ex.should_intercept       = true
-
-      if !PryExceptionExplorer.wrap_active?
-        retval = PryExceptionExplorer.enter_exception(ex, :inline => true)
-      end
-    end
-
-    if retval != PryExceptionExplorer::CONTINUE_INLINE_EXCEPTION
-      callcc do |cc|
-        ex.continuation = cc
-        super(ex)
-      end
+      # disable by default
+      PryExceptionExplorer.enabled = false
     end
   end
 end
 
-# disable by default (intercept exceptions inline)
-PryExceptionExplorer.wrap_active = false
-
-# default is to capture all exceptions
-PryExceptionExplorer.intercept { true }
-
-Pry.config.commands.import PryExceptionExplorer::Commands
-
-# disable by default
-PryExceptionExplorer.enabled = false
-
+# Add a hook to enable EE when invoked via `pry` executable
 Pry.config.hooks.add_hook(:when_started, :try_enable_exception_explorer) do
   if Pry.cli
     PryExceptionExplorer.wrap_active = true
     PryExceptionExplorer.enabled     = true
   end
 end
+
+# Bring in commands
+Pry.config.commands.import PryExceptionExplorer::Commands
+
+# Set initial state
+PryExceptionExplorer.init
+
+
