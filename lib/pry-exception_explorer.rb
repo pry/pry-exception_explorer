@@ -133,9 +133,8 @@ class Object
   end
 end
 
-# Let exceptions get caught by Pry REPL loop (i.e dont catch
-# immediately at point of 'raise')
-PryExceptionExplorer.wrap_active = true
+#
+PryExceptionExplorer.wrap_active = false
 
 # default is to capture all exceptions that bubble to the top
 PryExceptionExplorer.intercept { true }
@@ -146,5 +145,8 @@ Pry.config.commands.import PryExceptionExplorer::Commands
 PryExceptionExplorer.enabled = false
 
 Pry.config.hooks.add_hook(:when_started, :try_enable_exception_explorer) do
-  PryExceptionExplorer.enabled = true if Pry.cli
+  if Pry.cli
+    PryExceptionExplorer.wrap_active = true
+    PryExceptionExplorer.enabled     = true
+  end
 end
