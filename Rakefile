@@ -43,9 +43,14 @@ task :reinstall => :gems do
   sh "gem install #{direc}/pkg/pry-exception_explorer-#{PryExceptionExplorer::VERSION}.gem"
 end
 
-desc "Run example"
-task :example do
-  sh "ruby -I#{direc}/lib/ #{direc}/examples/example.rb "
+desc "Run example wrap"
+task :example_wrap do
+  sh "ruby -I#{direc}/lib/ #{direc}/examples/example_wrap.rb "
+end
+
+desc "Run example inline"
+task :example_inline do
+  sh "ruby -I#{direc}/lib/ #{direc}/examples/example_inline.rb "
 end
 
 task :default => :test
