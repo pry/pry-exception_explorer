@@ -20,7 +20,7 @@ module PryExceptionExplorer
       BANNER
 
       def process
-        if last_exception && last_exception.exception_call_stack
+        if enterable_exception?
           PryStackExplorer.create_and_push_frame_manager(last_exception.exception_call_stack, _pry_)
           PryExceptionExplorer.setup_exception_context(last_exception, _pry_)
           frame_manager.refresh_frame
@@ -34,6 +34,10 @@ module PryExceptionExplorer
       private
       def last_exception
         _pry_.last_exception
+      end
+
+      def enterable_exception?
+        last_exception && last_exception.exception_call_stack
       end
     end
 
@@ -75,8 +79,8 @@ module PryExceptionExplorer
           PryStackExplorer.pop_frame_manager(_pry_)
           run "exit-all PryExceptionExplorer::CONTINUE_INLINE_EXCEPTION"
         elsif normal_exception?
-          PryStackExplorer.pop_frame_manager(_pry_)
-          frame_manager.user[:exception].continue
+          popped_fm = PryStackExplorer.pop_frame_manager(_pry_)
+          popped_fm.user[:exception].continue
         else
           raise Pry::CommandError, "No exception to continue!"
         end

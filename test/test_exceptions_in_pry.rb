@@ -55,6 +55,25 @@ describe PryExceptionExplorer do
         end
       end
 
+      describe "continue-exception" do
+        it 'should continue the exception' do
+          o = OpenStruct.new
+          def o.test_method
+            raise "baby likes to raise an exception"
+            self.value = 10
+          end
+
+          redirect_pry_io(InputTester.new("test_method",
+                                          "enter-exception",
+                                          "continue-exception",
+                                          "exit-all")) do
+            Pry.start(o)
+          end
+
+          o.value.should == 10
+        end
+      end
+
       describe "exit-exception" do
         it 'should display error message when exit-exception used outside of exception context' do
           mock_pry("exit-exception").should =~ /You are not in an exception!/
