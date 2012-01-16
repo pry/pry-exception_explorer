@@ -1,20 +1,10 @@
 require 'pry-stack_explorer'
 
 module PryExceptionExplorer
-  module FrameHelpers
+  module ExceptionHelpers
+    include PryStackExplorer::FrameHelpers
+
     private
-    def frame_manager
-      PryStackExplorer.frame_manager(_pry_)
-    end
-
-    def frame_managers
-      PryStackExplorer.frame_managers(_pry_)
-    end
-
-    def prior_context_exists?
-      frame_managers.count > 1 || frame_manager.prior_binding
-    end
-
     def in_exception?
       frame_manager && frame_manager.user[:exception]
     end
@@ -22,7 +12,7 @@ module PryExceptionExplorer
 
   Commands = Pry::CommandSet.new do
     command_class "enter-exception", "Enter the context of the last exception" do
-      include PryExceptionExplorer::FrameHelpers
+      include PryExceptionExplorer::ExceptionHelpers
 
       banner <<-BANNER
         Usage: enter-exception
@@ -48,7 +38,7 @@ module PryExceptionExplorer
     end
 
     command_class "exit-exception", "Leave the context of the current exception." do
-      include PryExceptionExplorer::FrameHelpers
+      include PryExceptionExplorer::ExceptionHelpers
 
       banner <<-BANNER
         Usage: exit-exception
@@ -73,7 +63,7 @@ module PryExceptionExplorer
     end
 
     command_class "continue-exception", "Attempt to continue the current exception." do
-      include PryExceptionExplorer::FrameHelpers
+      include PryExceptionExplorer::ExceptionHelpers
 
       banner <<-BANNER
         Usage: continue-exception

@@ -37,7 +37,7 @@ module PryExceptionExplorer
       Thread.current[:__pry_exception_explorer_wrap__] = v
     end
 
-    # @param [Boolean] Whether to intercept only those exceptions that bubble out of
+    # @return [Boolean] Whether to intercept only those exceptions that bubble out of
     #   `EE.wrap` block.
     def wrap_active
       !!Thread.current[:__pry_exception_explorer_wrap__]
