@@ -8,6 +8,14 @@ module PryExceptionExplorer
     def in_exception?
       frame_manager && frame_manager.user[:exception]
     end
+
+    def last_exception
+      _pry_.last_exception
+    end
+
+    def enterable_exception?
+      last_exception && last_exception.exception_call_stack
+    end
   end
 
   Commands = Pry::CommandSet.new do
@@ -29,15 +37,6 @@ module PryExceptionExplorer
         else
           raise Pry::CommandError,  "No exception to enter!"
         end
-      end
-
-      private
-      def last_exception
-        _pry_.last_exception
-      end
-
-      def enterable_exception?
-        last_exception && last_exception.exception_call_stack
       end
     end
 
