@@ -31,7 +31,6 @@ module PryExceptionExplorer
         if enterable_exception?
           PryStackExplorer.create_and_push_frame_manager(last_exception.exception_call_stack, _pry_)
           PryExceptionExplorer.setup_exception_context(last_exception, _pry_)
-          frame_manager.refresh_frame
         elsif last_exception
           raise Pry::CommandError, "Current exception can't be entered! (perhaps a C exception)"
         else
@@ -55,11 +54,6 @@ module PryExceptionExplorer
           run "exit-all"
         else
           popped_fm = PryStackExplorer.pop_frame_manager(_pry_)
-          if frame_manager
-            frame_manager.refresh_frame
-          else
-            _pry_.binding_stack[-1] = popped_fm.prior_binding
-          end
           _pry_.last_exception = popped_fm.user[:exception]
         end
       end
