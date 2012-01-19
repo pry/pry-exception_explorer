@@ -21,26 +21,31 @@ module PryExceptionExplorer
 
   class << self
 
+    # @return [Hash] A thread-local hash.
+    def local_hash
+      Thread.current[:__pry_exception_explorer_hash__] ||= {}
+    end
+
     # @param [Boolean] v Whether Exception Explorer is enabled.
     def enabled=(v)
-      Thread.current[:__pry_exception_explorer_enabled__] = v
+      local_hash[:enabled] = v
     end
 
     # @return [Boolean] Whether Exception Explorer is enabled.
     def enabled
-      !!Thread.current[:__pry_exception_explorer_enabled__]
+      !!local_hash[:enabled]
     end
 
     # @param [Boolean] v Whether to intercept only those exceptions that bubble out of
     #   `EE.wrap` block.
     def wrap_active=(v)
-      Thread.current[:__pry_exception_explorer_wrap__] = v
+      local_hash[:wrap_active] = v
     end
 
     # @return [Boolean] Whether to intercept only those exceptions that bubble out of
     #   `EE.wrap` block.
     def wrap_active
-      !!Thread.current[:__pry_exception_explorer_wrap__]
+      !!local_hash[:wrap_active]
     end
 
     alias_method :wrap_active?, :wrap_active
@@ -95,12 +100,12 @@ module PryExceptionExplorer
         block = proc { |_, ex| exceptions.any? { |v| v === ex } }
       end
 
-      Thread.current[:__pry_exception_explorer_intercept_block__] = block
+      local_hash[:intercept_block] = block
     end
 
     # @return [Proc] The block defined earlier by a call to `PryExceptionExplorer.intercept`.
     def intercept_block
-      Thread.current[:__pry_exception_explorer_intercept_block__]
+      local_hash[:intercept_block]
     end
 
     # This method invokes the `PryExceptionExplorer.intercept_block`,
