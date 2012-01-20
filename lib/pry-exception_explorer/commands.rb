@@ -19,7 +19,7 @@ module PryExceptionExplorer
   end
 
   Commands = Pry::CommandSet.new do
-    command_class "enter-exception", "Enter the context of the last exception" do
+    create_command "enter-exception", "Enter the context of the last exception" do
       include PryExceptionExplorer::ExceptionHelpers
 
       banner <<-BANNER
@@ -39,8 +39,8 @@ module PryExceptionExplorer
       end
     end
 
-    command_class "exit-exception", "Leave the context of the current exception." do
-      include PryExceptionExplorer::ExceptionHelpers
+    create_command "exit-exception", "Leave the context of the current exception." do
+      include ExceptionHelpers
 
       banner <<-BANNER
         Usage: exit-exception
@@ -59,8 +59,8 @@ module PryExceptionExplorer
       end
     end
 
-    command_class "continue-exception", "Attempt to continue the current exception." do
-      include PryExceptionExplorer::ExceptionHelpers
+    create_command "continue-exception", "Attempt to continue the current exception." do
+      include ExceptionHelpers
 
       banner <<-BANNER
         Usage: continue-exception
