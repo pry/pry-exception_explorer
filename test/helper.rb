@@ -17,8 +17,6 @@ class OpenStruct
   end
 end
 
-EE = PryExceptionExplorer
-
 class Ratty
   def ratty
     Weasel.new.weasel
@@ -45,7 +43,7 @@ class << Pry
     Pry.color = false
     Pry.pager = false
     Pry.config.should_load_rc      = false
-    Pry.config.plugins.enabled     = false
+    Pry.config.should_load_plugins = false
     Pry.config.history.should_load = false
     Pry.config.history.should_save = false
     Pry.config.auto_indent         = false

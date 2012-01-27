@@ -7,7 +7,7 @@ O = OpenStruct.new
 prev_wrap_state = PryExceptionExplorer.wrap_active
 PryExceptionExplorer.wrap_active = false
 
-prev_intercept_state = PryExceptionExplorer.intercept_block
+prev_intercept_state = PryExceptionExplorer.intercept_object
 
 describe PryExceptionExplorer do
 
@@ -51,6 +51,39 @@ describe PryExceptionExplorer do
   end
 
   describe "PryExceptionExplorer.intercept" do
+    it 'should be a no-op when intercept called with no parameters' do
+      b = proc {}
+      old = EE.intercept_object
+      EE.intercept &b
+      EE.intercept
+      EE.intercept_object.block.should == b
+      EE.intercept_object = old
+    end
+
+    describe "skip" do
+      it 'should skip first frame with :skip => 1' do
+        EE.intercept(:skip => 1) { |frame, ex| frame.klass == Toad }
+
+        redirect_pry_io(InputTester.new("O.method_name = __method__",
+                                        "continue-exception")) do
+          Ratty.new.ratty
+        end
+
+        O.method_name.should == :weasel
+      end
+
+      it 'should skip first two framed with :skip => 2' do
+        EE.intercept(:skip => 2) { |frame, ex| frame.klass == Toad }
+
+        redirect_pry_io(InputTester.new("O.method_name = __method__",
+                                        "continue-exception")) do
+          Ratty.new.ratty
+        end
+
+        O.method_name.should == :ratty
+      end
+    end
+
     describe "special case exception-only syntax" do
 
       describe "single exception" do
@@ -125,7 +158,12 @@ describe PryExceptionExplorer do
       describe "second frame" do
         it  "should intercept exception based on second frame's method name" do
           EE.intercept { |frame, ex| frame.prev.klass == Weasel }
-          Ratty.new.ratty
+          begin
+            Ratty.new.ratty
+          rescue => ex
+            Pry.new(:input => Readline, :output =>
+                    $stdout).repl(binding)
+          end
           O.exception_intercepted.should == true
         end
 
@@ -298,6 +336,6 @@ end
 
 # restore to default
 PryExceptionExplorer.wrap_active = prev_wrap_state
-PryExceptionExplorer.intercept &prev_intercept_state
+PryExceptionExplorer.intercept_object = prev_intercept_state
 
 Object.send(:remove_const, :O)

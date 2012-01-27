@@ -6,6 +6,7 @@ require "pry-exception_explorer/version"
 require "pry-exception_explorer/lazy_frame"
 require "pry-exception_explorer/commands"
 require "pry-exception_explorer/core_ext"
+require "pry-exception_explorer/intercept"
 
 if RUBY_VERSION =~ /1.9/
   require 'continuation'
@@ -96,26 +97,35 @@ module PryExceptionExplorer
     # @example Second form: Assert exception is either `ArgumentError` or `RuntimeError`
     #   PryExceptionExplorer.intercept(ArgumentError, RuntimeError)
     def intercept(*exceptions, &block)
+      return if exceptions.empty? && block.nil?
+
+      options = (exceptions.pop if exceptions.last.is_a?(Hash)) || {}
+
       if !exceptions.empty?
         block = proc { |_, ex| exceptions.any? { |v| v === ex } }
       end
 
-      local_hash[:intercept_block] = block
+      local_hash[:intercept_object] = Intercept.new(block, options)
     end
 
-    # @return [Proc] The block defined earlier by a call to `PryExceptionExplorer.intercept`.
-    def intercept_block
-      local_hash[:intercept_block]
+    # @return [PryExceptionExplorer::Intercept] The object defined earlier by a call to `PryExceptionExplorer.intercept`.
+    def intercept_object=(b)
+      local_hash[:intercept_object] = b
     end
 
-    # This method invokes the `PryExceptionExplorer.intercept_block`,
+    # @return [PryExceptionExplorer::Intercept] The object defined earlier by a call to `PryExceptionExplorer.intercept`.
+    def intercept_object
+      local_hash[:intercept_object]
+    end
+
+    # This method invokes the `PryExceptionExplorer.intercept_object`,
     # passing in the exception's frame and the exception object itself.
     # @param [Binding] frame The stack frame where the exception occurred.
     # @param [Exception] ex The exception that was raised.
     # @return [Boolean] Whether the exception should be intercepted.
     def should_intercept_exception?(frame, ex)
-      if intercept_block
-        intercept_block.call(LazyFrame.new(frame), ex)
+      if intercept_object
+        intercept_object.call(LazyFrame.new(frame), ex)
       else
         false
       end

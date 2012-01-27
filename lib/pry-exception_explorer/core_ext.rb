@@ -36,8 +36,8 @@ class Object
     end
 
     if PryExceptionExplorer.should_intercept_exception?(binding.of_caller(1), ex)
-      ex.exception_call_stack = binding.callers.tap(&:shift)
-      ex.should_intercept       = true
+      ex.exception_call_stack = binding.callers.tap { |v| v.shift(1 + PryExceptionExplorer.intercept_object.skip) }
+      ex.should_intercept     = true
 
       if !PryExceptionExplorer.wrap_active?
         retval = PryExceptionExplorer.enter_exception(ex, :inline => true)

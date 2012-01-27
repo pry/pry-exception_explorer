@@ -2,7 +2,7 @@ module PryExceptionExplorer
   class LazyFrame
 
     # we need to jump over a few irrelevant frames to begin with
-    START_FRAME_OFFSET = 5
+    START_FRAME_OFFSET = 6
 
     def initialize(frame, frame_counter = 0)
       @frame         = frame
