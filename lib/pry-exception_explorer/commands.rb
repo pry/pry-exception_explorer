@@ -31,6 +31,12 @@ module PryExceptionExplorer
         if enterable_exception?
           PryStackExplorer.create_and_push_frame_manager(last_exception.exception_call_stack, _pry_)
           PryExceptionExplorer.setup_exception_context(last_exception, _pry_)
+
+          # have to use _pry_.run_command instead of 'run' here as
+          # 'run' works on the current target which hasnt been updated
+          # yet, whereas _pry_.run_command operates on the newly
+          # updated target (the context of the exception)
+          _pry_.run_command "whereami"
         elsif last_exception
           raise Pry::CommandError, "Current exception can't be entered! (perhaps a C exception)"
         else
