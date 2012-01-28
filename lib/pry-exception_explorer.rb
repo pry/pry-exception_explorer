@@ -154,6 +154,10 @@ module PryExceptionExplorer
     def enter_exception(ex, options={})
       hooks = Pry.config.hooks.dup.add_hook(:before_session, :set_exception_flag) do |_, _, _pry_|
         setup_exception_context(ex, _pry_, options)
+      end.add_hook(:before_session, :manage_intercept_recurse) do 
+        PryExceptionExplorer.intercept_object.disable! if !PryExceptionExplorer.intercept_object.intercept_recurse?
+      end.add_hook(:after_session, :manage_intercept_recurse) do
+        PryExceptionExplorer.intercept_object.enable! if !PryExceptionExplorer.intercept_object.active?
       end
 
       Pry.start self, :call_stack => ex.exception_call_stack, :hooks => hooks

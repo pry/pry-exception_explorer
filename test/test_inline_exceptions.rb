@@ -60,6 +60,37 @@ describe PryExceptionExplorer do
       EE.intercept_object = old
     end
 
+    describe "intercept_recurse" do
+      it 'should NOT allow recursive (in-session) interceptions by default' do
+        EE.intercept { |frame, ex| frame.klass == Toad }
+
+        redirect_pry_io(InputTester.new("O.before_self = self",
+                                        "Ratty.new.ratty",
+                                        "O.after_self = self",
+                                        "continue-exception",
+                                        "continue-exception")) do
+          Ratty.new.ratty 
+        end
+
+        O.before_self.should == O.after_self
+      end
+
+      it 'should allow recursive (in-session) interceptions when :intercept_recurse => true' do
+        EE.intercept(:intercept_recurse => true) { |frame, ex| frame.klass == Toad }
+
+        redirect_pry_io(InputTester.new("O.before_self = self",
+                                        "Ratty.new.ratty",
+                                        "O.after_self = self",
+                                        "continue-exception",
+                                        "continue-exception")) do
+          Ratty.new.ratty 
+        end
+
+        O.before_self.should.not == O.after_self
+      end
+      
+    end
+
     describe "skip" do
       it 'should skip first frame with :skip => 1' do
         EE.intercept(:skip => 1) { |frame, ex| frame.klass == Toad }
