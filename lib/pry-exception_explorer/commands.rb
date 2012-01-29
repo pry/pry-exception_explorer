@@ -16,6 +16,16 @@ module PryExceptionExplorer
     def enterable_exception?
       last_exception && last_exception.exception_call_stack
     end
+
+    def inline_exception?
+      frame_manager && frame_manager.user[:exception] &&
+        frame_manager.user[:inline_exception]
+    end
+
+    def normal_exception?
+      frame_manager && frame_manager.user[:exception] &&
+        frame_manager.user[:exception].continuation
+    end
   end
 
   Commands = Pry::CommandSet.new do
@@ -83,15 +93,6 @@ module PryExceptionExplorer
         else
           raise Pry::CommandError, "No exception to continue!"
         end
-      end
-
-      private
-      def inline_exception?
-        frame_manager && frame_manager.user[:exception] && frame_manager.user[:inline_exception]
-      end
-
-      def normal_exception?
-        frame_manager && frame_manager.user[:exception] && frame_manager.user[:exception].continuation
       end
     end
 
