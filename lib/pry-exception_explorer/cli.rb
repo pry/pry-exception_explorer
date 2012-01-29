@@ -26,6 +26,6 @@ Pry::CLI.add_options do
       ENV['LD_PRELOAD'] = File.join PryExceptionExplorer::ShimBuilder.dir, binary_name
     end
 
-    exec("pry")
+    exec("pry #{(ARGV - ["--c-exceptions"]).join(' ')}")
   end
 end
