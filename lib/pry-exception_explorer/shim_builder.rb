@@ -7,7 +7,7 @@ module PryExceptionExplorer
       attr_reader :dir, :file
     end
 
-    @dir = File.expand_path('~/.pry-exception_explorer')
+    @dir = File.expand_path("~/.pry-exception_explorer/#{RUBY_VERSION}")
     @file = File.join(@dir, "raise_shim.c")
 
     if RUBY_PLATFORM =~ /darwin/
