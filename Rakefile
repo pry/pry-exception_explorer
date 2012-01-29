@@ -53,6 +53,20 @@ task :example_inline do
   sh "ruby -I#{direc}/lib/ #{direc}/examples/example_inline.rb "
 end
 
+desc "Run example C inline"
+task :example_c_inline do
+  require 'pry-exception_explorer/shim_builder'
+  binary_name = "lib_overrides.#{PryExceptionExplorer::ShimBuilder::Dyname}"
+  if RUBY_PLATFORM =~ /darwin/
+    ENV['DYLD_FORCE_FLAT_NAMESPACE'] = "1"
+    ENV['DYLD_INSERT_LIBRARIES'] = File.join PryExceptionExplorer::ShimBuilder.dir, binary_name
+  else
+    ENV['LD_PRELOAD'] = File.join PryExceptionExplorer::ShimBuilder.dir, binary_name
+  end
+
+  sh "ruby -I#{direc}/lib/ #{direc}/examples/example_c_inline.rb "
+end
+
 task :default => :test
 
 desc "Show version"
