@@ -2,6 +2,8 @@ require 'rbconfig'
 require 'fileutils'
 
 module PryExceptionExplorer
+  CompileError = Class.new(StandardError)
+
   module ShimBuilder
     class << self
       attr_reader :dir, :file
@@ -26,27 +28,15 @@ module PryExceptionExplorer
 void
 rb_raise(unsigned long exc, const char *fmt, ...)
 {
-  static void (*libruby_rb_raise)
-    (unsigned long exc, const char *fmt, ...) = NULL;
-
-  void * handle;
-  char * error;
-
-  if (!libruby_rb_raise) {
-    handle = dlopen("#{RbConfig::CONFIG['libdir']}/libruby.#{Dyname}", RTLD_LAZY);
-    if (!handle) {
-      fputs(dlerror(), stderr);
-      exit(1);
-    }
-    libruby_rb_raise = dlsym(handle, "rb_raise");
-    if ((error = dlerror()) != NULL) {
-      fprintf(stderr, "%s", error);
-      exit(1);
-    }
-  }
-
   rb_funcall(rb_cObject, rb_intern("raise"), 2, exc, rb_str_new2("hooked exception (pry)"));
 }
+
+void
+rb_name_error(ID id, const char *fmt, ...)
+{
+  rb_funcall(rb_cObject, rb_intern("raise"), 2, rb_eNameError, rb_str_new2("hooked exception (pry)"));
+}
+
 EOF
 
     def self.create_directory_and_source_file
@@ -74,7 +64,9 @@ EOF
       end
 
       FileUtils.chdir @dir do
-        system(compile_line)
+        if !system(compile_line)
+          raise CompileError, "There was a problem building the shim, aborted!"
+        end
       end
 
     end
