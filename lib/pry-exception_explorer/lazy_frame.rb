@@ -4,9 +4,10 @@ module PryExceptionExplorer
     # we need to jump over a few irrelevant frames to begin with
     START_FRAME_OFFSET = 6
 
-    def initialize(frame, frame_counter = 0)
+    def initialize(frame, frame_counter = 0, call_stack = nil)
       @frame         = frame
       @frame_counter = frame_counter
+      @call_stack    = call_stack
     end
 
     # @return [Binding] The `Binding` object that represents the frame.
@@ -31,7 +32,11 @@ module PryExceptionExplorer
 
     # @return [LazyFrame] The caller frame.
     def prev
-      LazyFrame.new(binding.of_caller(@frame_counter + START_FRAME_OFFSET), @frame_counter + 1)
+      if @call_stack
+        LazyFrame.new(@call_stack[@frame_counter + 1], @frame_counter + 1, @call_stack)
+      else
+        LazyFrame.new(binding.of_caller(@frame_counter + START_FRAME_OFFSET), @frame_counter + 1)
+      end
     end
   end
 end

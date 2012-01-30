@@ -31,12 +31,16 @@ class Object
     ex.set_backtrace(array)
 
     # revert to normal exception behaviour if EE not enabled.
-    if !PryExceptionExplorer.enabled?
+    if !PryExceptionExplorer.enabled? 
       return super(ex)
     end
 
+    intercept_object = PryExceptionExplorer.intercept_object
+    
     if PryExceptionExplorer.should_intercept_exception?(binding.of_caller(1), ex)
-      ex.exception_call_stack = binding.callers.tap { |v| v.shift(1 + PryExceptionExplorer.intercept_object.skip) }
+      ex.exception_call_stack = binding.callers.tap { |v| v.shift(1 + intercept_object.skip_num) }      
+      PryExceptionExplorer.amend_exception_call_stack!(ex)
+      
       ex.should_intercept     = true
 
       if !PryExceptionExplorer.wrap_active?

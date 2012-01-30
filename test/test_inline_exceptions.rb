@@ -76,7 +76,7 @@ describe PryExceptionExplorer do
       end
 
       it 'should allow recursive (in-session) interceptions when :intercept_recurse => true' do
-        EE.intercept(:intercept_recurse => true) { |frame, ex| frame.klass == Toad }
+        EE.intercept { |frame, ex| frame.klass == Toad }.intercept_recurse(true)
 
         redirect_pry_io(InputTester.new("O.before_self = self",
                                         "Ratty.new.ratty",
@@ -93,7 +93,7 @@ describe PryExceptionExplorer do
 
     describe "skip" do
       it 'should skip first frame with :skip => 1' do
-        EE.intercept(:skip => 1) { |frame, ex| frame.klass == Toad }
+        EE.intercept { |frame, ex| frame.klass == Toad }.skip(1)
 
         redirect_pry_io(InputTester.new("O.method_name = __method__",
                                         "continue-exception")) do
@@ -104,7 +104,7 @@ describe PryExceptionExplorer do
       end
 
       it 'should skip first two framed with :skip => 2' do
-        EE.intercept(:skip => 2) { |frame, ex| frame.klass == Toad }
+        EE.intercept { |frame, ex| frame.klass == Toad }.skip(2)
 
         redirect_pry_io(InputTester.new("O.method_name = __method__",
                                         "continue-exception")) do
@@ -114,6 +114,32 @@ describe PryExceptionExplorer do
         O.method_name.should == :ratty
       end
     end
+
+    describe "skip_until" do
+      it 'should skip frames until it finds a frame that meets the predicate' do
+        EE.intercept { |frame, ex| frame.klass == Toad }.skip_until { |frame| frame.prev.method_name == :ratty }
+
+        redirect_pry_io(InputTester.new("O.method_name = __method__",
+                                        "continue-exception")) do
+          Ratty.new.ratty
+        end
+
+        O.method_name.should == :weasel
+      end
+    end
+
+    describe "skip_while" do
+      it 'should skip frames while no frames meets the predicate' do
+        EE.intercept { |frame, ex| frame.klass == Toad }.skip_while { |frame| frame.prev.method_name != :ratty }
+
+        redirect_pry_io(InputTester.new("O.method_name = __method__",
+                                        "continue-exception")) do
+          Ratty.new.ratty
+        end
+
+        O.method_name.should == :weasel
+      end
+    end    
 
     describe "special case exception-only syntax" do
 

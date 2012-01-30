@@ -99,13 +99,11 @@ module PryExceptionExplorer
     def intercept(*exceptions, &block)
       return if exceptions.empty? && block.nil?
 
-      options = (exceptions.pop if exceptions.last.is_a?(Hash)) || {}
-
       if !exceptions.empty?
         block = proc { |_, ex| exceptions.any? { |v| v === ex } }
       end
 
-      local_hash[:intercept_object] = Intercept.new(block, options)
+      local_hash[:intercept_object] = Intercept.new(block)
     end
 
     # @return [PryExceptionExplorer::Intercept] The object defined earlier by a call to `PryExceptionExplorer.intercept`.
@@ -129,6 +127,24 @@ module PryExceptionExplorer
       else
         false
       end
+    end
+
+    # Amends (destructively) an exception call stack according to the info in
+    # `PryExceptionExplorer.intercept_object`, specifically
+    # `PryExceptionExplorer::Intercept#skip_until_block` and `PryExceptionExplorer::Intercept#skip_while_block`.
+    # @param [Exception] ex The exception whose call stack will be amended.
+    def amend_exception_call_stack!(ex)
+      call_stack = ex.exception_call_stack
+
+      if intercept_object.skip_until_block
+        idx = call_stack.each_with_index.find_index { |frame, idx| intercept_object.skip_until_block.call(LazyFrame.new(frame, idx, call_stack))  }
+        call_stack = call_stack.drop(idx)
+      elsif intercept_object.skip_while_block
+        idx = call_stack.each_with_index.find_index { |frame, idx| intercept_object.skip_while_block.call(LazyFrame.new(frame, idx, call_stack)) == false }
+        call_stack = call_stack.drop(idx)
+      end
+      
+      ex.exception_call_stack = call_stack
     end
 
     # Prepare the `Pry` instance and associated call-stack when entering
