@@ -16,12 +16,71 @@ parent frames.
 * Read the [documentation](http://rdoc.info/github/banister/pry-exception_explorer/master/file/README.md)
 * See the [source code](http://github.com/banister/pry-exception_explorer)
 
-Example: Example description
+Example: 
 --------
 
-Example preamble
+In the Ruby file:
 
-    puts "example code"
+```ruby
+require 'pry-exception_explorer'
+
+PryExceptionExplorer.enabled = true
+PryExceptionExplorer.intercept(ArgumentError)
+
+def alpha
+  name = "john"
+  beta
+  puts name
+end
+
+def beta
+  x = "john"
+  gamma(x)
+end
+
+def gamma(x)
+  raise ArgumentError, "x must be a number!" if !x.is_a?(Numeric)
+  puts "2 * x = #{2 * x}"
+end
+
+alpha
+
+```
+
+The following session starts up:
+
+```ruby
+Frame number: 0/4
+Frame type: method
+
+From: /Users/john/ruby/projects/pry-exception_explorer/examples/example_inline.rb @ line 23 in Object#gamma:
+
+    18:   x = "john"
+    19:   gamma(x)
+    20: end
+    21: 
+    22: def gamma(x)
+ => 23:   raise ArgumentError, "x must be a number!" if !x.is_a?(Numeric)
+    24:   puts "2 * x = #{2 * x}"
+    25: end
+    26: 
+    27: alpha
+
+[1] (pry) main: 0> x
+=> "john"
+[2] (pry) main: 0> x = 7
+=> 7
+[3] (pry) main: 0> continue-exception
+```
+
+Since we fixed the problem (invalid type for `x` local) we can `continue-exception`, and have the method continue with the 
+amended `x`:
+
+**PROGRAM OUTPUT:**
+
+>> 2 * x = 14
+
+>> john
 
 Features and limitations
 -------------------------
