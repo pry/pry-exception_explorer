@@ -1,5 +1,11 @@
 module PryExceptionExplorer
   class LazyFrame
+    class NullFrame
+      def klass() nil end
+      def self() nil end
+      def method_name() nil end
+      def prev() self end
+    end
 
     # we need to jump over a few irrelevant frames to begin with
     START_FRAME_OFFSET = 6
@@ -8,11 +14,6 @@ module PryExceptionExplorer
       @frame         = frame
       @frame_counter = frame_counter
       @call_stack    = call_stack
-    end
-
-    # @return [Binding] The `Binding` object that represents the frame.
-    def raw_frame
-      @frame
     end
 
     # @return [Class] The class of the `self` of the frame.
@@ -33,7 +34,11 @@ module PryExceptionExplorer
     # @return [LazyFrame] The caller frame.
     def prev
       if @call_stack
-        LazyFrame.new(@call_stack[@frame_counter + 1], @frame_counter + 1, @call_stack)
+        if @frame_counter < (@call_stack.size - 1)
+          LazyFrame.new(@call_stack[@frame_counter + 1], @frame_counter + 1, @call_stack)
+        else
+          NullFrame.new
+        end
       else
         LazyFrame.new(binding.of_caller(@frame_counter + START_FRAME_OFFSET), @frame_counter + 1)
       end

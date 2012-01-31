@@ -69,7 +69,7 @@ describe PryExceptionExplorer do
                                         "O.after_self = self",
                                         "continue-exception",
                                         "continue-exception")) do
-          Ratty.new.ratty 
+          Ratty.new.ratty
         end
 
         O.before_self.should == O.after_self
@@ -83,12 +83,12 @@ describe PryExceptionExplorer do
                                         "O.after_self = self",
                                         "continue-exception",
                                         "continue-exception")) do
-          Ratty.new.ratty 
+          Ratty.new.ratty
         end
 
         O.before_self.should.not == O.after_self
       end
-      
+
     end
 
     describe "skip" do
@@ -126,6 +126,17 @@ describe PryExceptionExplorer do
 
         O.method_name.should == :weasel
       end
+
+      it 'should not skip any frames if predicate not met' do
+        EE.intercept { |frame, ex| frame.klass == Toad }.skip_until { |frame| frame.prev.method_name == :will_not_be_matched }
+
+        redirect_pry_io(InputTester.new("O.method_name = __method__",
+                                        "continue-exception")) do
+          Ratty.new.ratty
+        end
+
+        O.method_name.should == :toad
+      end
     end
 
     describe "skip_while" do
@@ -139,7 +150,18 @@ describe PryExceptionExplorer do
 
         O.method_name.should == :weasel
       end
-    end    
+
+      it 'should not skip any frames if predicate not met' do
+        EE.intercept { |frame, ex| frame.klass == Toad }.skip_while { |frame| frame.prev.method_name != :will_not_be_matched }
+
+        redirect_pry_io(InputTester.new("O.method_name = __method__",
+                                        "continue-exception")) do
+          Ratty.new.ratty
+        end
+
+        O.method_name.should == :toad
+      end
+    end
 
     describe "special case exception-only syntax" do
 

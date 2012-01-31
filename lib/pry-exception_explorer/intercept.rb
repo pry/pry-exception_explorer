@@ -1,6 +1,10 @@
 module PryExceptionExplorer
   class Intercept
 
+    # @return [Proc] The predicate block that determines if
+    #   interception takes place.
+    attr_reader :block
+
     # @return [Fixnum] Number of frames to skip when session starts.
     attr_reader :skip_num
 
@@ -13,19 +17,19 @@ module PryExceptionExplorer
     # @return [Boolean] Whether this intercept object is active
     #   If it's inactive then calling it will always return `false`
     #   regardless of content inside block.
-    def active?() @active end
+    def active?() !!@active end
 
     # Disable the intercept object.
-    # @return [PryExceptionExplorer::Intercept] The receiver    
+    # @return [PryExceptionExplorer::Intercept] The receiver
     def disable!() tap { @active = false } end
 
     # Enable if the intercept object.
-    # @return [PryExceptionExplorer::Intercept] The receiver    
+    # @return [PryExceptionExplorer::Intercept] The receiver
     def enable!() tap { @active = true } end
 
     # @param [Fixnum] num Number of frames to skip when session
     #   starts.
-    # @return [PryExceptionExplorer::Intercept] The receiver    
+    # @return [PryExceptionExplorer::Intercept] The receiver
     def skip(num) tap { @skip_num = num } end
 
     # @yield [lazy_frame] The block that defines the frames to
@@ -41,11 +45,11 @@ module PryExceptionExplorer
     #  this block evalutes to `true`.
     # @yieldparam [PryExceptionExplorer::LazyFrame] lazy_frame
     # @yieldreturn [Boolean]
-    # @return [PryExceptionExplorer::Intercept] The receiver    
+    # @return [PryExceptionExplorer::Intercept] The receiver
     def skip_until(&block) tap { @skip_until_block = block } end
 
     # @param [Boolean] should_recurse Whether to intercept exceptions
-    #   raised inside the session.    
+    #   raised inside the session.
     # @return [PryExceptionExplorer::Intercept] The receiver
     def intercept_recurse(should_recurse) tap { @intercept_recurse = should_recurse } end
 
@@ -53,19 +57,19 @@ module PryExceptionExplorer
     #   will be intercepted.
     def intercept_recurse?() !!@intercept_recurse end
 
-    # @return [Proc] The predicate block that determines if
-    #   interception takes place.
-    attr_reader :block
-
     def initialize(block)
       skip(0)
       intercept_recurse(false)
-      
-      @block = block
 
+      @block  = block
       @active = true
     end
 
+    # Invoke the associated block for this
+    # `PryExceptionExplorer::Intercept` object. Note that the block is
+    # not invoked if the intercept object is inactive.
+    # @param [Array] args The parameters to
+    # @return [Boolean] Determines whether a given exception should be intercepted.
     def call(*args)
       active? && @block.call(*args)
     end
