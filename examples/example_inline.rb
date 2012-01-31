@@ -6,7 +6,7 @@ end
 require 'pry-exception_explorer'
 
 PryExceptionExplorer.enabled = true
-PryExceptionExplorer.intercept(RuntimeError)
+PryExceptionExplorer.intercept(ArgumentError)
 
 def alpha
   name = "john"
@@ -15,13 +15,13 @@ def alpha
 end
 
 def beta
-  x = 20
-  gamma
-  puts x
+  x = "john"
+  gamma(x)
 end
 
-def gamma
-  raise "oh my, an exception"
+def gamma(x)
+  raise ArgumentError, "x must be a number!" if !x.is_a?(Numeric)
+  puts "2 * x = #{2 * x}"
 end
 
 alpha
