@@ -7,7 +7,7 @@ _Enter the context of exceptions_
 
 `pry-exception_explorer` is an interactive error console for Ruby 1.9.2+ inspired by the [Hammertime](https://github.com/avdi/hammertime) 
 gem, which was in turn inspired by consoles found in the Lisp and Smalltalk environments. `pry-exception_explorer` is a plugin
-for the [Pry REPL]([Pry](http://pry.github.com).
+for the [Pry REPL](http://pry.github.com).
 
 Using `pry-exception_explorer` we can automatically pull up a [Pry](http://pry.github.com) session at the point an exception arises and use `Pry` 
 to inspect the state there to debug (and fix) the problem. We also get access to the entire call stack of the exception and can walk the stack to interactively examine the state in
