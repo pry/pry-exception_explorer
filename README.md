@@ -16,10 +16,12 @@ Using `pry-exception_explorer` we can automatically pull up a [Pry](http://pry.g
 to inspect the state there to debug (and fix) the problem. We also get access to the entire call stack of the exception and can walk the stack to interactively examine the state in
 parent frames (using [pry-stack_explorer](https://github.com/pry/pry-stack_explorer)).
 
+**Watch the mini-screencast:** http://vimeo.com/35953694
+
 * Install the [gem](https://rubygems.org/gems/pry-exception_explorer): `gem install pry-exception_explorer`
 * Read the [documentation](http://rdoc.info/github/banister/pry-exception_explorer/master/file/README.md)
 * See the [source code](http://github.com/banister/pry-exception_explorer)
-
+ 
 Example: 
 --------
 
