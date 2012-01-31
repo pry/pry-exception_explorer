@@ -85,7 +85,20 @@ amended `x`:
 Features and limitations
 -------------------------
 
-Feature List Preamble
+### Features
+
+* Puts you in context of exception.
+* Makes entire call stack accessible (useful for drilling down to precise cause of error).
+* Allows you to 'continue' from exception, recovering from error (`continue-exception` command)
+* Has limited/experimental ability to intercept exceptions that arise from C code (use `pry --c-exceptions` to enable).
+* Let's you assert over state of entire stack when determining whether an exception should be intercepted.
+* Let's you start the session on any stack frame.
+
+### Limitations
+
+* Only works on Ruby 1.9.2+ (including 1.9.3) MRI. 
+* Limited support for `C` exceptions -- only some exceptions that arise from C code are caught.
+* Wiki documentation coming soon ;)
 
 Contact
 -------
