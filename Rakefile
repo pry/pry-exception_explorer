@@ -2,8 +2,8 @@ $:.unshift 'lib'
 
 dlext = RbConfig::CONFIG['DLEXT']
 direc = File.dirname(__FILE__)
-
 PROJECT_NAME = "pry-exception_explorer"
+$VERBOSE = nil
 
 require 'rake/clean'
 require 'rake/gempackagetask'
