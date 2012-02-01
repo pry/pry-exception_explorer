@@ -19,16 +19,22 @@ end
 # `PryExceptionExplorer` monkey-patches to `Object`
 class Object
 
-  # We monkey-patch the `raise` method so we can intercept exceptions
-  def raise(exception = RuntimeError, string = nil, array = nil)
+  #  We monkey-patch the `raise` method so we can intercept exceptions
+  def raise(*args)
+    exception, string, array = args
     if exception.is_a?(String)
       string = exception
       exception = RuntimeError
     end
 
     if exception.is_a?(Exception)
-      ex = string ? exception.exception(string) : exception.exception
-      ex.set_backtrace(array) if array
+      return super(*args)
+    elsif exception.nil?
+      if $!
+        return super($!)
+      else
+        return super(RuntimeError)
+      end
     else
       ex = exception.exception(string)
       ex.set_backtrace(array ? array : caller)
@@ -36,7 +42,7 @@ class Object
 
     # revert to normal exception behaviour if EE not enabled.
     if !PryExceptionExplorer.enabled?
-      return super(ex)
+      return super(*args)
     end
 
     intercept_object = PryExceptionExplorer.intercept_object
