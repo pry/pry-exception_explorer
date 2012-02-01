@@ -20,17 +20,20 @@ end
 class Object
 
   # We monkey-patch the `raise` method so we can intercept exceptions
-  def raise(exception = RuntimeError, string = nil, array = caller)
-
+  def raise(exception = RuntimeError, string = nil, array = nil)
     if exception.is_a?(String)
       string = exception
       exception = RuntimeError
     end
 
-    ex = exception.exception(string)
-    ex.set_backtrace(array)
+    if exception.is_a?(Exception)
+      ex = string ? exception.exception(string) : exception.exception
+      ex.set_backtrace(array) if array
+    else
+      ex = exception.exception(string)
+      ex.set_backtrace(array ? array : caller)
+    end
 
-    puts "EE is enabled? #{PryExceptionExplorer.enabled?}"
     # revert to normal exception behaviour if EE not enabled.
     if !PryExceptionExplorer.enabled?
       return super(ex)
