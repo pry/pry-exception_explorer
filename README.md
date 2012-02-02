@@ -5,24 +5,24 @@ pry-exception_explorer
 
 _Enter the context of exceptions_
 
-**Please note, this is a first release for pry-exception_explorer and as such it may still have teething 
+**Please note, this is a first release for pry-exception_explorer and as such it may still have teething
 problems. If you encounter any quirks or crashes please [file an issue](https://github.com/pry/pry-exception_explorer/issues)**
 
-`pry-exception_explorer` is an interactive error console for Ruby 1.9.2+ inspired by the [Hammertime](https://github.com/avdi/hammertime) 
+`pry-exception_explorer` is an interactive error console for Ruby 1.9.2+ inspired by the [Hammertime](https://github.com/avdi/hammertime)
 gem, which was in turn inspired by consoles found in the Lisp and Smalltalk environments. `pry-exception_explorer` is a plugin
 for the [Pry REPL](http://pry.github.com).
 
-Using `pry-exception_explorer` we can automatically pull up a [Pry](http://pry.github.com) session at the point an exception arises and use `Pry` 
+Using `pry-exception_explorer` we can automatically pull up a [Pry](http://pry.github.com) session at the point an exception arises and use `Pry`
 to inspect the state there to debug (and fix) the problem. We also get access to the entire call stack of the exception and can walk the stack to interactively examine the state in
 parent frames (using [pry-stack_explorer](https://github.com/pry/pry-stack_explorer)).
 
-**Watch the mini-screencast:** http://vimeo.com/35953694
+**Watch the mini-screencast:** http://vimeo.com/36061298
 
 * Install the [gem](https://rubygems.org/gems/pry-exception_explorer): `gem install pry-exception_explorer`
 * Read the [documentation](http://rdoc.info/github/banister/pry-exception_explorer/master/file/README.md)
 * See the [source code](http://github.com/banister/pry-exception_explorer)
- 
-Example: 
+
+Example:
 --------
 
 In the Ruby file:
@@ -64,12 +64,12 @@ From: /Users/john/ruby/projects/pry-exception_explorer/examples/example_inline.r
     18:   x = "john"
     19:   gamma(x)
     20: end
-    21: 
+    21:
     22: def gamma(x)
  => 23:   raise ArgumentError, "x must be a number!" if !x.is_a?(Numeric)
     24:   puts "2 * x = #{2 * x}"
     25: end
-    26: 
+    26:
     27: alpha
 
 [1] (pry) main: 0> x
@@ -79,7 +79,7 @@ From: /Users/john/ruby/projects/pry-exception_explorer/examples/example_inline.r
 [3] (pry) main: 0> continue-exception
 ```
 
-Since we fixed the problem (invalid type for `x` local) we can `continue-exception`, and have the method continue with the 
+Since we fixed the problem (invalid type for `x` local) we can `continue-exception`, and have the method continue with the
 amended `x`:
 
 **PROGRAM OUTPUT:**
@@ -102,7 +102,7 @@ Features and limitations
 
 ### Limitations
 
-* Only works on Ruby 1.9.2+ (including 1.9.3) MRI. 
+* Only works on Ruby 1.9.2+ (including 1.9.3) MRI.
 * Limited support for `C` exceptions -- only some exceptions that arise from C code are caught.
 * Wiki documentation coming soon ;)
 
@@ -115,7 +115,7 @@ Problems or questions contact me at [github](http://github.com/banister)
 License
 -------
 
-(The MIT License) 
+(The MIT License)
 
 Copyright (c) 2011 John Mair (banisterfiend)
 
