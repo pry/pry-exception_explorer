@@ -22,28 +22,38 @@ class Object
   #  We monkey-patch the `raise` method so we can intercept exceptions
   def raise(*args)
     exception, string, array = args
+
     if exception.is_a?(String)
       string = exception
       exception = RuntimeError
     end
 
-    if exception.is_a?(Exception)
-      return super(*args)
-    elsif exception.nil?
-      if $!
-        return super($!)
+    if !PryExceptionExplorer.enabled?
+      if exception.is_a?(Exception)
+        return super(*args)
+      elsif exception.nil?
+        if $!
+          return super($!)
+        else
+          return super(RuntimeError)
+        end
       else
-        return super(RuntimeError)
+        return super(*args)
       end
-    else
-      ex = exception.exception(string)
-      ex.set_backtrace(array ? array : caller)
     end
 
-    # revert to normal exception behaviour if EE not enabled.
-    if !PryExceptionExplorer.enabled?
-      return super(*args)
+    if string
+      ex = exception.exception(string)
+    else
+      ex = exception.exception
     end
+
+    ex.set_backtrace(array ? array : caller)
+
+    # revert to normal exception behaviour if EE not enabled.
+    # if !PryExceptionExplorer.enabled?
+    #   return super(*args)
+    # end
 
     intercept_object = PryExceptionExplorer.intercept_object
 
