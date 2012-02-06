@@ -180,12 +180,9 @@ module PryExceptionExplorer
         PryExceptionExplorer.intercept_object.enable! if !PryExceptionExplorer.intercept_object.active?
       end
 
-      # if ex.to_s =~/Pig/
       #   Pry.load_plugins
-      #   binding.pry    # if we have this here and step through with
-      #   pry-nav sometimes we get segfaults :/
+      #   binding.pry    # if we have this here and step through with  pry-nav sometimes we get segfaults :/
       # end
-
 
       Pry.start self, :call_stack => ex.exception_call_stack, :hooks => hooks
     end
