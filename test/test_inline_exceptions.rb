@@ -9,6 +9,8 @@ PryExceptionExplorer.wrap_active = false
 
 prev_intercept_state = PryExceptionExplorer.intercept_object
 
+PryExceptionExplorer.enabled = true
+
 describe PryExceptionExplorer do
 
   before do

@@ -29,7 +29,7 @@ class Object
     end
 
     if !PryExceptionExplorer.enabled?
-      if exception.is_a?(Exception)
+      if exception.is_a?(Exception) || (exception.is_a?(Class) && exception < Exception)
         return super(*args)
       elsif exception.nil?
         if $!
@@ -42,22 +42,29 @@ class Object
       end
     end
 
-    if string
-      ex = exception.exception(string)
+    if exception.is_a?(Exception) || (exception.is_a?(Class) && exception < Exception)
+      if string
+        ex = exception.exception(string)
+      else
+        ex = exception.exception
+      end
+    elsif exception.nil?
+      if $!
+        ex = $!.exception
+      else
+        ex = RuntimeError.exception
+      end
     else
-      ex = exception.exception
+      ex = RuntimeError.exception
     end
 
     ex.set_backtrace(array ? array : caller)
 
-    # revert to normal exception behaviour if EE not enabled.
-    # if !PryExceptionExplorer.enabled?
-    #   return super(*args)
-    # end
-
     intercept_object = PryExceptionExplorer.intercept_object
 
-    if PryExceptionExplorer.should_intercept_exception?(binding.of_caller(1), ex)
+    if PryExceptionExplorer.should_intercept_exception?(binding.of_caller(1), ex) &&
+        binding.of_caller(1).eval('[__method__, self.to_s]') != [:make_plugin_hash, "CodeRay::Encoders"]
+
       ex.exception_call_stack = binding.callers.tap { |v| v.shift(1 + intercept_object.skip_num) }
       PryExceptionExplorer.amend_exception_call_stack!(ex)
 

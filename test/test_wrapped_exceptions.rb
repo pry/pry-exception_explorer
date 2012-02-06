@@ -6,6 +6,7 @@ UncaughtException = Class.new(StandardError)
 describe PryExceptionExplorer do
 
   before do
+    PryExceptionExplorer.enabled = true
     Pry.config.input = StringIO.new("exit :caught\n")
     Pry.config.output = StringIO.new
     Pry.config.hooks.add_hook(:when_started, :save_caller_bindings, WhenStartedHook)

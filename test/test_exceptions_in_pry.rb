@@ -7,6 +7,7 @@ describe PryExceptionExplorer do
   before do
     PryExceptionExplorer.intercept { true }
     PryExceptionExplorer.wrap_active = true
+    PryExceptionExplorer.enabled = true
   end
 
   after do

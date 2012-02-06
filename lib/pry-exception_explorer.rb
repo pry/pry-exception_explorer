@@ -22,9 +22,9 @@ module PryExceptionExplorer
 
   class << self
 
-    # @return [Hash] A thread-local hash.
+    # @return [Hash] A local hash.
     def local_hash
-      Thread.current[:__pry_exception_explorer_hash__] ||= {}
+      @hash ||= {}
     end
 
     # @param [Boolean] v Whether Exception Explorer is enabled.
@@ -173,12 +173,19 @@ module PryExceptionExplorer
     #   entered inline (i.e within the `raise` method itself)
     def enter_exception(ex, options={})
       hooks = Pry.config.hooks.dup.add_hook(:before_session, :set_exception_flag) do |_, _, _pry_|
-        setup_exception_context(ex, _pry_, options)
+        setup_exception_context(ex, _pry_, options) if SE.frame_manager(_pry_)
       end.add_hook(:before_session, :manage_intercept_recurse) do
         PryExceptionExplorer.intercept_object.disable! if !PryExceptionExplorer.intercept_object.intercept_recurse?
       end.add_hook(:after_session, :manage_intercept_recurse) do
         PryExceptionExplorer.intercept_object.enable! if !PryExceptionExplorer.intercept_object.active?
       end
+
+      # if ex.to_s =~/Pig/
+      #   Pry.load_plugins
+      #   binding.pry    # if we have this here and step through with
+      #   pry-nav sometimes we get segfaults :/
+      # end
+
 
       Pry.start self, :call_stack => ex.exception_call_stack, :hooks => hooks
     end
