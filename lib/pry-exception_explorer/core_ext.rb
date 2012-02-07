@@ -2,8 +2,18 @@
 class Exception
   NoContinuation = Class.new(StandardError)
 
+  # @return [Continuation] The continuation object for the exception.
+  #   Invoking this continuation will allow the program to continue
+  #   from the point the exception was raised.
   attr_accessor :continuation
+
+  # @return [Array<Binding>] The array of bindings that represent the
+  #   call stack for the exception. This is navigable inside the Pry
+  #   session with the `up` and `down` and `frame` commands.
   attr_accessor :exception_call_stack
+
+  # @return [Boolean] Whether this exception should be intercepted.
+  #   (Only relevant for wrapped exceptions).
   attr_accessor :should_intercept
 
   # This method enables us to continue an exception (using
@@ -28,47 +38,48 @@ class Object
       exception = RuntimeError
     end
 
-    if !PryExceptionExplorer.enabled?
-      if exception.is_a?(Exception) || (exception.is_a?(Class) && exception < Exception)
-        return super(*args)
-      elsif exception.nil?
-        if $!
-          return super($!)
-        else
-          return super(RuntimeError)
-        end
-      else
-        return super(*args)
-      end
-    end
-
     if exception.is_a?(Exception) || (exception.is_a?(Class) && exception < Exception)
-      if string
-        ex = exception.exception(string)
+      if PryExceptionExplorer.enabled?
+        ex = string ? exception.exception(string) : exception.exception
       else
-        ex = exception.exception
+        return super(*args)
       end
     elsif exception.nil?
       if $!
-        ex = $!.exception
+        if PryExceptionExplorer.enabled?
+          ex = $!.exception
+        else
+          return super($!)
+        end
       else
-        ex = RuntimeError.exception
+        if PryExceptionExplorer.enabled?
+          ex = RuntimeError.exception
+        else
+          return super(RuntimeError)
+        end
       end
     else
-      ex = RuntimeError.exception
+      if PryExceptionExplorer.enabled?
+        ex = RuntimeError.exception
+      else
+        return super(*args)
+      end
     end
 
     ex.set_backtrace(array ? array : caller)
 
     intercept_object = PryExceptionExplorer.intercept_object
 
+    # FIXME: CodeRay stuff is a hack because CodeRay generates a bunch of
+    # exceptions that would cause EE to infiniloop on
+    # intercept(Exception), find a better solution.
     if PryExceptionExplorer.should_intercept_exception?(binding.of_caller(1), ex) &&
         binding.of_caller(1).eval('[__method__, self.to_s]') != [:make_plugin_hash, "CodeRay::Encoders"]
 
       ex.exception_call_stack = binding.callers.tap { |v| v.shift(1 + intercept_object.skip_num) }
       PryExceptionExplorer.amend_exception_call_stack!(ex)
 
-      ex.should_intercept     = true
+      ex.should_intercept  = true
 
       if !PryExceptionExplorer.wrap_active?
         retval = PryExceptionExplorer.enter_exception(ex, :inline => true)

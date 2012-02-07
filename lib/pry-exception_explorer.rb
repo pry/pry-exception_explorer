@@ -136,11 +136,14 @@ module PryExceptionExplorer
     def amend_exception_call_stack!(ex)
       call_stack = ex.exception_call_stack
 
+      # skip_until
       if intercept_object.skip_until_block
         idx = call_stack.each_with_index.find_index do |frame, idx|
           intercept_object.skip_until_block.call(LazyFrame.new(frame, idx, call_stack))
         end
         call_stack = call_stack.drop(idx) if idx
+
+      # skip_while
       elsif intercept_object.skip_while_block
         idx = call_stack.each_with_index.find_index do |frame, idx|
           intercept_object.skip_while_block.call(LazyFrame.new(frame, idx, call_stack)) == false
@@ -173,7 +176,7 @@ module PryExceptionExplorer
     #   entered inline (i.e within the `raise` method itself)
     def enter_exception(ex, options={})
       hooks = Pry.config.hooks.dup.add_hook(:before_session, :set_exception_flag) do |_, _, _pry_|
-        setup_exception_context(ex, _pry_, options) if SE.frame_manager(_pry_)
+        setup_exception_context(ex, _pry_, options)
       end.add_hook(:before_session, :manage_intercept_recurse) do
         PryExceptionExplorer.intercept_object.disable! if !PryExceptionExplorer.intercept_object.intercept_recurse?
       end.add_hook(:after_session, :manage_intercept_recurse) do
@@ -182,7 +185,6 @@ module PryExceptionExplorer
 
       #   Pry.load_plugins
       #   binding.pry    # if we have this here and step through with  pry-nav sometimes we get segfaults :/
-      # end
 
       Pry.start self, :call_stack => ex.exception_call_stack, :hooks => hooks
     end
