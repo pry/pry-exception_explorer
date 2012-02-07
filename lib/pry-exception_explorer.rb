@@ -186,7 +186,7 @@ module PryExceptionExplorer
       #   Pry.load_plugins
       #   binding.pry    # if we have this here and step through with  pry-nav sometimes we get segfaults :/
 
-      Pry.start self, :call_stack => ex.exception_call_stack, :hooks => hooks
+      Pry.start binding, :call_stack => ex.exception_call_stack, :hooks => hooks
     end
 
     # Set initial state
