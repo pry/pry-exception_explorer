@@ -30,8 +30,8 @@ In the Ruby file:
 ```ruby
 require 'pry-exception_explorer'
 
-PryExceptionExplorer.enabled = true
-PryExceptionExplorer.intercept(ArgumentError)
+EE.enabled = true
+EE.intercept(ArgumentError)
 
 def alpha
   name = "john"
