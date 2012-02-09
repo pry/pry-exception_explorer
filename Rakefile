@@ -23,7 +23,7 @@ def apply_spec_defaults(s)
   s.description = s.summary
   s.require_path = 'lib'
   s.homepage = "https://github.com/banister/pry-exception_explorer"
-  s.add_dependency('pry-stack_explorer')
+  s.add_dependency('pry-stack_explorer', ">=0.3.9")
   s.add_development_dependency("bacon","~>1.1.0")
   s.add_development_dependency('rake', '~> 0.9')
 
