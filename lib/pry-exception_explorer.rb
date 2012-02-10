@@ -27,6 +27,18 @@ module PryExceptionExplorer
       @hash ||= {}
     end
 
+    # Enable Exception Explorer.
+    # @return [Boolean]
+    def enable!
+      self.enabled = true
+    end
+
+    # Disable Exception Explorer.
+    # @return [Boolean]
+    def disable!
+      self.enabled = false
+    end
+
     # @param [Boolean] v Whether Exception Explorer is enabled.
     def enabled=(v)
       local_hash[:enabled] = v
