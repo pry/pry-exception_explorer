@@ -21,6 +21,7 @@ parent frames (using [pry-stack_explorer](https://github.com/pry/pry-stack_explo
 * Install the [gem](https://rubygems.org/gems/pry-exception_explorer): `gem install pry-exception_explorer`
 * Read the [documentation](http://rdoc.info/github/banister/pry-exception_explorer/master/file/README.md)
 * See the [source code](http://github.com/banister/pry-exception_explorer)
+* See the [wiki](https://github.com/pry/pry-exception_explorer/wiki) for in-depth usage information.
 
 Example:
 --------
