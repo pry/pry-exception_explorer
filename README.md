@@ -105,7 +105,6 @@ Features and limitations
 
 * Only works on Ruby 1.9.2+ (including 1.9.3) MRI.
 * Limited support for `C` exceptions -- only some exceptions that arise from C code are caught.
-* Wiki documentation coming soon ;)
 
 Contact
 -------
