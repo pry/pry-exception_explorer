@@ -5,9 +5,6 @@ pry-exception_explorer
 
 _Enter the context of exceptions_
 
-**Please note, this is a first release for pry-exception_explorer and as such it may still have teething
-problems. If you encounter any quirks or crashes please [file an issue](https://github.com/pry/pry-exception_explorer/issues)**
-
 `pry-exception_explorer` is an interactive error console for MRI Ruby 1.9.2+ inspired by the [Hammertime](https://github.com/avdi/hammertime)
 gem, which was in turn inspired by consoles found in the Lisp and Smalltalk environments. `pry-exception_explorer` is a plugin
 for the [Pry REPL](http://pry.github.com).
