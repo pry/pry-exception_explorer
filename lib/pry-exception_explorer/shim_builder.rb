@@ -25,10 +25,15 @@ module PryExceptionExplorer
 #include <unistd.h>
 #include <ruby.h>
 
-void
-rb_raise(unsigned long exc, const char *fmt, ...)
+rb_raise(VALUE exc, const char *fmt, ...)
 {
-  rb_funcall(rb_cObject, rb_intern("raise"), 2, exc, rb_str_new2("hooked exception (pry)"));
+    va_list args;
+    VALUE mesg;
+
+    va_start(args, fmt);
+    mesg = rb_vsprintf(fmt, args);
+    va_end(args);
+    rb_funcall(rb_cObject, rb_intern("raise"), 2, exc, mesg);
 }
 
 void
