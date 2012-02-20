@@ -27,70 +27,77 @@ class Exception
 end
 
 # `PryExceptionExplorer` monkey-patches to `Object`
-class Object
+module PryExceptionExplorer
+  module CoreExtensions
 
-  #  We monkey-patch the `raise` method so we can intercept exceptions
-  def raise(*args)
-    exception, string, array = args
+    #  We monkey-patch the `raise` method so we can intercept exceptions
+    def raise(*args)
+      exception, string, array = args
 
-    if exception.is_a?(String)
-      string = exception
-      exception = RuntimeError
-    end
-
-    if exception.is_a?(Exception) || (exception.is_a?(Class) && exception < Exception)
-      if PryExceptionExplorer.enabled?
-        ex = string ? exception.exception(string) : exception.exception
-      else
-        return super(*args)
+      if exception.is_a?(String)
+        string = exception
+        exception = RuntimeError
       end
-    elsif exception.nil?
-      if $!
+
+      if exception.is_a?(Exception) || (exception.is_a?(Class) && exception < Exception)
         if PryExceptionExplorer.enabled?
-          ex = $!.exception
+          ex = string ? exception.exception(string) : exception.exception
         else
-          return super($!)
+          return super(*args)
+        end
+      elsif exception.nil?
+        if $!
+          if PryExceptionExplorer.enabled?
+            ex = $!.exception
+          else
+            return super($!)
+          end
+        else
+          if PryExceptionExplorer.enabled?
+            ex = RuntimeError.exception
+          else
+            return super(RuntimeError)
+          end
         end
       else
         if PryExceptionExplorer.enabled?
           ex = RuntimeError.exception
         else
-          return super(RuntimeError)
+          return super(*args)
         end
       end
-    else
-      if PryExceptionExplorer.enabled?
-        ex = RuntimeError.exception
-      else
-        return super(*args)
+
+      ex.set_backtrace(array ? array : caller)
+
+      intercept_object = PryExceptionExplorer.intercept_object
+
+      # FIXME: CodeRay stuff is a hack because CodeRay generates a bunch of
+      # exceptions that would cause EE to infiniloop on
+      # intercept(Exception), find a better solution.
+      if PryExceptionExplorer.should_intercept_exception?(binding.of_caller(1), ex) &&
+          binding.of_caller(1).eval('[__method__, self.to_s]') != [:make_plugin_hash, "CodeRay::Encoders"]
+
+        ex.exception_call_stack = binding.callers.tap { |v| v.shift(1 + intercept_object.skip_num) }
+        PryExceptionExplorer.amend_exception_call_stack!(ex)
+
+        ex.should_intercept  = true
+
+        if !PryExceptionExplorer.wrap_active?
+          retval = PryExceptionExplorer.enter_exception(ex, :inline => true)
+        end
       end
-    end
 
-    ex.set_backtrace(array ? array : caller)
-
-    intercept_object = PryExceptionExplorer.intercept_object
-
-    # FIXME: CodeRay stuff is a hack because CodeRay generates a bunch of
-    # exceptions that would cause EE to infiniloop on
-    # intercept(Exception), find a better solution.
-    if PryExceptionExplorer.should_intercept_exception?(binding.of_caller(1), ex) &&
-        binding.of_caller(1).eval('[__method__, self.to_s]') != [:make_plugin_hash, "CodeRay::Encoders"]
-
-      ex.exception_call_stack = binding.callers.tap { |v| v.shift(1 + intercept_object.skip_num) }
-      PryExceptionExplorer.amend_exception_call_stack!(ex)
-
-      ex.should_intercept  = true
-
-      if !PryExceptionExplorer.wrap_active?
-        retval = PryExceptionExplorer.enter_exception(ex, :inline => true)
-      end
-    end
-
-    if retval != PryExceptionExplorer::CONTINUE_INLINE_EXCEPTION
-      callcc do |cc|
-        ex.continuation = cc
-        super(ex)
+      if retval != PryExceptionExplorer::CONTINUE_INLINE_EXCEPTION
+        callcc do |cc|
+          ex.continuation = cc
+          super(ex)
+        end
       end
     end
   end
+end
+
+
+class Object
+  include PryExceptionExplorer::CoreExtensions
 end
