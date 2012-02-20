@@ -25,6 +25,7 @@ module PryExceptionExplorer
 #include <unistd.h>
 #include <ruby.h>
 
+void
 rb_raise(VALUE exc, const char *fmt, ...)
 {
     va_list args;
