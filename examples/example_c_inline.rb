@@ -6,7 +6,6 @@ end
 require 'pry-exception_explorer'
 
 PryExceptionExplorer.enabled = true
-PryExceptionExplorer.intercept(NameError)
 
 def alpha
   name = "john"
@@ -21,7 +20,7 @@ def beta
 end
 
 def gamma
-  UnknownConstant
+  1/0
 end
 
 alpha

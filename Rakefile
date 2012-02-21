@@ -26,6 +26,7 @@ def apply_spec_defaults(s)
   s.add_dependency('pry-stack_explorer', ">=0.3.9")
   s.add_development_dependency("bacon","~>1.1.0")
   s.add_development_dependency('rake', '~> 0.9')
+  s.executables = ['pry-shim']
 
   s.files = `git ls-files`.split("\n")
   s.test_files = `git ls-files -- test/*`.split("\n")
@@ -55,16 +56,7 @@ end
 
 desc "Run example C inline"
 task :example_c_inline do
-  require 'pry-exception_explorer/shim_builder'
-  binary_name = "lib_overrides.#{PryExceptionExplorer::ShimBuilder::Dyname}"
-  if RUBY_PLATFORM =~ /darwin/
-    ENV['DYLD_FORCE_FLAT_NAMESPACE'] = "1"
-    ENV['DYLD_INSERT_LIBRARIES'] = File.join PryExceptionExplorer::ShimBuilder.dir, binary_name
-  else
-    ENV['LD_PRELOAD'] = File.join PryExceptionExplorer::ShimBuilder.dir, binary_name
-  end
-
-  sh "ruby -I#{direc}/lib/ #{direc}/examples/example_c_inline.rb "
+  sh "pry-shim ruby -I#{direc}/lib/ #{direc}/examples/example_c_inline.rb "
 end
 
 task :default => :test
