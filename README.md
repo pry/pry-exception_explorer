@@ -7,7 +7,10 @@ _Enter the context of exceptions_
 
 `pry-exception_explorer` is an interactive error console for MRI Ruby 1.9.2+ inspired by the [Hammertime](https://github.com/avdi/hammertime)
 gem, which was in turn inspired by consoles found in the Lisp and Smalltalk environments. `pry-exception_explorer` is a plugin
-for the [Pry REPL](http://pry.github.com).
+for the [Pry REPL](http://pry.github.com). 
+
+**Note**, like the hammertime gem, `pry-exception_explorer` can only really intercept exceptions that are explicitly raised (using the `raise` method) from Ruby code. 
+This means that exceptions raised by syntax errors or from code such as `1/0` cannot be intercepted. Though experimental support for intercepting such deep (c-level) exceptions is provided by invoking with `pry --c-exceptions`.
 
 Using `pry-exception_explorer` we can automatically pull up a [Pry](http://pry.github.com) session at the point an exception arises and use `Pry`
 to inspect the state there to debug (and fix) the problem. We also get access to the entire call stack of the exception and can walk the stack to interactively examine the state in
@@ -18,7 +21,9 @@ parent frames (using [pry-stack_explorer](https://github.com/pry/pry-stack_explo
 * Install the [gem](https://rubygems.org/gems/pry-exception_explorer): `gem install pry-exception_explorer`
 * Read the [documentation](http://rdoc.info/github/banister/pry-exception_explorer/master/file/README.md)
 * See the [source code](http://github.com/banister/pry-exception_explorer)
-* See the [wiki](https://github.com/pry/pry-exception_explorer/wiki) for in-depth usage information.
+* See the [**WIKI**](https://github.com/pry/pry-exception_explorer/wiki) for in-depth usage information.
+
+Also look at the [plymouth](https://github.com/banister/plymouth) project which utilizes `pry-exception_explorer` to intercept test failures.
 
 Example:
 --------
