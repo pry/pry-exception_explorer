@@ -134,7 +134,14 @@ module PryExceptionExplorer
     # @param [Exception] ex The exception that was raised.
     # @return [Boolean] Whether the exception should be intercepted.
     def should_intercept_exception?(frame, ex)
-      if intercept_object
+
+      # special case, or we go into infinite loop. CodeRay uses
+      # exceptions for flow control :/
+      if defined?(CodeRay::Encoders) && frame.eval('[__method__, self]') == [:make_plugin_hash, CodeRay::Encoders]
+        false
+
+        # normal case
+      elsif intercept_object
         intercept_object.call(LazyFrame.new(frame), ex)
       else
         false
@@ -195,22 +202,27 @@ module PryExceptionExplorer
         PryExceptionExplorer.intercept_object.enable! if !PryExceptionExplorer.intercept_object.active?
       end
 
-      #   Pry.load_plugins
-      #   binding.pry    # if we have this here and step through with  pry-nav sometimes we get segfaults :/
-
       Pry.start binding, :call_stack => ex.exception_call_stack, :hooks => hooks
     end
 
     # Set initial state
     def init
       # disable by default (intercept exceptions inline)
-      PryExceptionExplorer.wrap_active = false
+      PryExceptionExplorer.wrap_active = true
 
       # default is to capture all exceptions
       PryExceptionExplorer.intercept { true }
 
       # disable by default
       PryExceptionExplorer.enabled = false
+      at_exit do
+        ex = $!
+        if ex.should_intercept?
+          enter_exception(ex)
+        else
+          raise ex
+        end
+      end
     end
   end
 end
