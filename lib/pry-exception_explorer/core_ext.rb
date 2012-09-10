@@ -23,6 +23,30 @@ class Exception
     continuation.call
   end
 
+  alias_method :old_exception, :exception
+
+  def exception(*args, &block)
+    if !caller.any? { |t| t.include?("raise") } && !exception_call_stack
+      ex = old_exception(*args, &block)
+
+      ex.exception_call_stack = binding.callers.drop(1)
+
+      PryExceptionExplorer.amend_exception_call_stack!(ex)
+      ex.should_intercept = true
+
+      if !PryExceptionExplorer.wrap_active?
+        retval = PryExceptionExplorer.enter_exception(ex, :inline => true)
+      else
+        callcc do |cc|
+          ex.continuation = cc
+          ex
+        end
+      end
+    else
+      old_exception(*args, &block)
+    end
+  end
+
   alias_method :should_intercept?, :should_intercept
 end
 
@@ -71,11 +95,7 @@ module PryExceptionExplorer
 
       intercept_object = PryExceptionExplorer.intercept_object
 
-      # FIXME: CodeRay stuff is a hack because CodeRay generates a bunch of
-      # exceptions that would cause EE to infiniloop on
-      # intercept(Exception), find a better solution.
-      if PryExceptionExplorer.should_intercept_exception?(binding.of_caller(1), ex) &&
-          binding.of_caller(1).eval('[__method__, self.to_s]') != [:make_plugin_hash, "CodeRay::Encoders"]
+      if PryExceptionExplorer.should_intercept_exception?(binding.of_caller(1), ex)
 
         ex.exception_call_stack = binding.callers.tap { |v| v.shift(1 + intercept_object.skip_num) }
         PryExceptionExplorer.amend_exception_call_stack!(ex)
@@ -87,6 +107,9 @@ module PryExceptionExplorer
         end
       end
 
+      # Pry.color = false
+      # binding.pry if self == TOPLEVEL_BINDING.eval('self')
+
       if retval != PryExceptionExplorer::CONTINUE_INLINE_EXCEPTION
         callcc do |cc|
           ex.continuation = cc
@@ -96,7 +119,6 @@ module PryExceptionExplorer
     end
   end
 end
-
 
 class Object
   include PryExceptionExplorer::CoreExtensions
