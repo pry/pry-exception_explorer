@@ -26,7 +26,8 @@ class Exception
   alias_method :old_exception, :exception
 
   def exception(*args, &block)
-    if !caller.any? { |t| t.include?("raise") } && !exception_call_stack
+    puts "yo yo yo #{self}"
+    if PryExceptionExplorer.enabled? && !caller.any? { |t| t.include?("raise") } && !exception_call_stack
       ex = old_exception(*args, &block)
 
       ex.exception_call_stack = binding.callers.drop(1)
@@ -106,9 +107,6 @@ module PryExceptionExplorer
           retval = PryExceptionExplorer.enter_exception(ex, :inline => true)
         end
       end
-
-      # Pry.color = false
-      # binding.pry if self == TOPLEVEL_BINDING.eval('self')
 
       if retval != PryExceptionExplorer::CONTINUE_INLINE_EXCEPTION
         callcc do |cc|

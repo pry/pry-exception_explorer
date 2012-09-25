@@ -68,7 +68,7 @@ end
 
 desc "run tests"
 task :test do
-  sh "bacon -Itest -rubygems -a -q"
+  sh "bacon -Itest -rubygems -a"
 end
 
 desc "Build gemspec"

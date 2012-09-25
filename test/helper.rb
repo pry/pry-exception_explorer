@@ -1,4 +1,5 @@
 require 'rubygems'
+require 'pry'
 
 unless Object.const_defined? 'PryExceptionExplorer'
   $:.unshift File.expand_path '../../lib', __FILE__

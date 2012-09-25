@@ -217,8 +217,11 @@ module PryExceptionExplorer
       PryExceptionExplorer.enabled = false
       at_exit do
         ex = $!
+        
+        next if !ex
+        
         if ex.should_intercept?
-          enter_exception(ex)
+          #enter_exception(ex)
         else
           raise ex
         end

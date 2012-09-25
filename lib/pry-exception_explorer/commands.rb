@@ -14,7 +14,7 @@ module PryExceptionExplorer
     end
 
     def enterable_exception?
-      last_exception && last_exception.exception_call_stack
+      PryExceptionExplorer.enabled && last_exception && last_exception.exception_call_stack
     end
 
     def inline_exception?
