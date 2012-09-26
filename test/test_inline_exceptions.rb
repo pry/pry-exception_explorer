@@ -6,6 +6,7 @@ O = OpenStruct.new
 
 prev_wrap_state = PryExceptionExplorer.wrap_active
 PryExceptionExplorer.wrap_active = false
+PryExceptionExplorer.inline!
 
 prev_intercept_state = PryExceptionExplorer.intercept_object
 

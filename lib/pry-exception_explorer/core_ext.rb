@@ -26,7 +26,6 @@ class Exception
   alias_method :old_exception, :exception
 
   def exception(*args, &block)
-    puts "yo yo yo #{self}"
     if PryExceptionExplorer.enabled? && !caller.any? { |t| t.include?("raise") } && !exception_call_stack
       ex = old_exception(*args, &block)
 
@@ -35,7 +34,7 @@ class Exception
       PryExceptionExplorer.amend_exception_call_stack!(ex)
       ex.should_intercept = true
 
-      if !PryExceptionExplorer.wrap_active?
+      if PryExceptionExplorer.inline?
         retval = PryExceptionExplorer.enter_exception(ex, :inline => true)
       else
         callcc do |cc|
@@ -103,7 +102,7 @@ module PryExceptionExplorer
 
         ex.should_intercept  = true
 
-        if !PryExceptionExplorer.wrap_active?
+        if PryExceptionExplorer.inline?
           retval = PryExceptionExplorer.enter_exception(ex, :inline => true)
         end
       end

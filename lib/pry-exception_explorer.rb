@@ -27,6 +27,19 @@ module PryExceptionExplorer
       @hash ||= {}
     end
 
+    # @return [Boolean] Whether exceptions are to be intercepted
+    #   inline (at the raise site).
+    attr_accessor :inline
+    attr_accessor :post_mortem
+
+    # Ensure exceptions are intercepted at the raise site.
+    def inline!
+      self.inline = true
+    end
+
+    alias_method :inline?, :inline
+    alias_method :post_mortem?, :post_mortem
+
     # Enable Exception Explorer.
     # @return [Boolean]
     def enable!
@@ -71,8 +84,10 @@ module PryExceptionExplorer
     # @yield The block to wrap.
     def wrap
       old_enabled, old_wrap_active = enabled, wrap_active
+      old_inline = inline
       self.enabled     = true
       self.wrap_active = true
+      self.inline      = false
       yield
     rescue Exception => ex
       if ex.should_intercept?
@@ -83,6 +98,7 @@ module PryExceptionExplorer
     ensure
       self.enabled     = old_enabled
       self.wrap_active = old_wrap_active
+      self.inline      = old_inline
     end
 
     # This method allows the user to assert the situations where an
@@ -207,6 +223,9 @@ module PryExceptionExplorer
 
     # Set initial state
     def init
+      PryExceptionExplorer.post_mortem = true
+      PryExceptionExplorer.enabled = true
+      
       # disable by default (intercept exceptions inline)
       PryExceptionExplorer.wrap_active = true
 
@@ -214,14 +233,14 @@ module PryExceptionExplorer
       PryExceptionExplorer.intercept { true }
 
       # disable by default
-      PryExceptionExplorer.enabled = false
+      PryExceptionExplorer.inline = false
       at_exit do
         ex = $!
         
-        next if !ex
+        next if !PryExceptionExplorer.post_mortem? || !ex
         
         if ex.should_intercept?
-          #enter_exception(ex)
+          enter_exception(ex)
         else
           raise ex
         end

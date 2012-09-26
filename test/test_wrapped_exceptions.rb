@@ -60,7 +60,6 @@ describe PryExceptionExplorer do
       it 'should have no effect for wrap block (which sets enabled=true internally)' do
         old_e = PryExceptionExplorer.enabled
         PryExceptionExplorer.enabled = false
-
         PryExceptionExplorer.wrap do
           raise CaughtException, "catch me if u can"
         end.should == :caught
