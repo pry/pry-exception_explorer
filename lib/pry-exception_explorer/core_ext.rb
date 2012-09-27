@@ -16,6 +16,11 @@ class Exception
   #   (Only relevant for wrapped exceptions).
   attr_accessor :should_intercept
 
+  # @return [Boolean] Whether this exception was raised internally.
+  #   i.e from the C-level using `rb_raise`
+  attr_accessor :internal_exception
+  alias_method :internal_exception?, :internal_exception
+
   # This method enables us to continue an exception (using
   # `callcc` internally)
   def continue
@@ -26,22 +31,25 @@ class Exception
   alias_method :old_exception, :exception
 
   def exception(*args, &block)
-    if PryExceptionExplorer.enabled? && !caller.any? { |t| t.include?("raise") } && !exception_call_stack
+    $e = binding.callers.drop(1)
+    if PryExceptionExplorer.enabled? &&
+        PryExceptionExplorer.should_intercept_exception?(binding.of_caller(1), self) &&
+        !caller.any? { |t| t.include?("raise") } && !exception_call_stack
+      
       ex = old_exception(*args, &block)
 
       ex.exception_call_stack = binding.callers.drop(1)
+      ex.set_backtrace(caller.drop(1)) if !ex.backtrace
 
       PryExceptionExplorer.amend_exception_call_stack!(ex)
-      ex.should_intercept = true
+      ex.should_intercept   = true
+      ex.internal_exception = true
 
       if PryExceptionExplorer.inline?
         retval = PryExceptionExplorer.enter_exception(ex, :inline => true)
-      else
-        callcc do |cc|
-          ex.continuation = cc
-          ex
-        end
       end
+
+      ex
     else
       old_exception(*args, &block)
     end

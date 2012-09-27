@@ -197,8 +197,8 @@ module PryExceptionExplorer
     # @option options [Boolean] :inline Whether the exception is being
     #   entered inline (i.e within the `raise` method itself)
     def setup_exception_context(ex, _pry_, options={})
-      _pry_.last_exception = ex
-      _pry_.backtrace = ex.backtrace
+      _pry_.last_exception = ex 
+      _pry_.backtrace = (ex.backtrace || [])
 
       PryStackExplorer.frame_manager(_pry_).user[:exception]        = ex
       PryStackExplorer.frame_manager(_pry_).user[:inline_exception] = !!options[:inline]

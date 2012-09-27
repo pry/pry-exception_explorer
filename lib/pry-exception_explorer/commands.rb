@@ -5,8 +5,13 @@ module PryExceptionExplorer
     include PryStackExplorer::FrameHelpers
 
     private
+
+    def exception
+      frame_manager.user[:exception]
+    end
+
     def in_exception?
-      frame_manager && frame_manager.user[:exception]
+      frame_manager && exception
     end
 
     def last_exception
@@ -18,13 +23,16 @@ module PryExceptionExplorer
     end
 
     def inline_exception?
-      frame_manager && frame_manager.user[:exception] &&
+      in_exception? &&
         frame_manager.user[:inline_exception]
     end
 
+    def internal_exception?
+      in_exception? && exception.internal_exception?
+    end
+
     def normal_exception?
-      frame_manager && frame_manager.user[:exception] &&
-        frame_manager.user[:exception].continuation
+      in_exception? && frame_manager.user[:exception].continuation
     end
   end
 
@@ -84,7 +92,9 @@ module PryExceptionExplorer
       BANNER
 
       def process
-        if inline_exception?
+        if internal_exception?
+          raise Pry::CommandError, "Internal exceptions (C-level exceptions) cannot be continued!"
+        elsif inline_exception?
           PryStackExplorer.pop_frame_manager(_pry_)
           run "exit-all PryExceptionExplorer::CONTINUE_INLINE_EXCEPTION"
         elsif normal_exception?

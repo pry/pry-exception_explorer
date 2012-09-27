@@ -14,6 +14,7 @@ describe PryExceptionExplorer do
   end
 
   after do
+    Pad.clear
     Pry.config.hooks.delete_hook(:when_started, :save_caller_bindings)
     Pry.config.hooks.delete_hook(:after_session, :delete_frame_manager)
   end
@@ -53,6 +54,38 @@ describe PryExceptionExplorer do
         end
 
         o.pry_bt.should == o.ex.backtrace
+      end
+    end
+
+    describe "internal exceptions" do
+      it 'should be able to intercept internal exceptions' do
+        redirect_pry_io(InputTester.new("Pad.ex = _ex_", "exit-all")) do
+          PryExceptionExplorer.wrap do
+            (1 / 0)
+          end rescue nil
+        end
+
+        Pad.ex.is_a?(ZeroDivisionError).should == true
+      end
+
+      it 'should not intercept rescued exceptions' do
+        redirect_pry_io(InputTester.new("Pad.ex = _ex_", "exit-all")) do
+          PryExceptionExplorer.wrap do
+            (1 / 0) rescue nil
+          end 
+        end
+
+        Pad.ex.should == nil
+      end
+
+      it 'should not be able to continue exceptions' do
+        redirect_pry_io(InputTester.new("continue-exception"), out=StringIO.new) do
+          PryExceptionExplorer.wrap do
+            (1 / 0) 
+          end 
+        end
+
+        out.string.should =~ /cannot be continued/
       end
     end
 

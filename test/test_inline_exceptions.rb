@@ -33,6 +33,23 @@ describe PryExceptionExplorer do
     O.clear
   end
 
+  describe "internal exceptions" do
+    it 'should intercept internal exceptions inline' do
+      redirect_pry_io(StringIO.new("O.exception_intercepted = true\nexit-all\n"), out=StringIO.new) do
+        (1 / 0) rescue nil
+      end
+      
+      O.exception_intercepted.should == true
+    end
+
+    it 'should be un-continuable' do
+      redirect_pry_io(StringIO.new("O.exception_intercepted = true\ncontinue-exception\n"), out=StringIO.new) do
+        (1 / 0) rescue nil
+      end
+      out.string.should =~ /cannot be continued/
+    end
+  end
+
   describe "enabled = false" do
     it 'should prevent interception of an exception' do
       old_e = PryExceptionExplorer.enabled

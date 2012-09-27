@@ -18,6 +18,8 @@ class OpenStruct
   end
 end
 
+Pad = OpenStruct.new
+
 class Ratty
   def ratty
     Weasel.new.weasel
