@@ -150,10 +150,9 @@ module PryExceptionExplorer
     # @param [Exception] ex The exception that was raised.
     # @return [Boolean] Whether the exception should be intercepted.
     def should_intercept_exception?(frame, ex)
-
       # special case, or we go into infinite loop. CodeRay uses
       # exceptions for flow control :/
-      if defined?(CodeRay::Encoders) && frame.eval('[__method__, self]') == [:make_plugin_hash, CodeRay::Encoders]
+      if defined?(CodeRay::Encoders) && frame.eval('self') == CodeRay::Encoders
         false
 
         # normal case
@@ -213,7 +212,7 @@ module PryExceptionExplorer
       hooks = Pry.config.hooks.dup.add_hook(:before_session, :set_exception_flag) do |_, _, _pry_|
         setup_exception_context(ex, _pry_, options)
       end.add_hook(:before_session, :manage_intercept_recurse) do
-        PryExceptionExplorer.intercept_object.disable! if !PryExceptionExplorer.intercept_object.intercept_recurse?
+        PryExceptionExplorer.intercept_object.disable! if PryExceptionExplorer.inline? && !PryExceptionExplorer.intercept_object.intercept_recurse?
       end.add_hook(:after_session, :manage_intercept_recurse) do
         PryExceptionExplorer.intercept_object.enable! if !PryExceptionExplorer.intercept_object.active?
       end
@@ -251,10 +250,9 @@ end
 
 # Add a hook to enable EE when invoked via `pry` executable
 Pry.config.hooks.add_hook(:when_started, :try_enable_exception_explorer) do
-  if Pry.cli
-    PryExceptionExplorer.wrap_active = true
-    PryExceptionExplorer.enabled     = true
-  end
+  PryExceptionExplorer.wrap_active = true
+  PryExceptionExplorer.enabled     = true
+  PryExceptionExplorer.inline      = false
 end
 
 # Bring in commands

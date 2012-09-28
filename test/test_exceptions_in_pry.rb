@@ -15,6 +15,42 @@ describe PryExceptionExplorer do
   end
 
   describe "Exceptions caught by Pry" do
+
+    describe "internal exceptions (C-level)" do
+      before do
+        O.klass = Class.new do
+          def alpha
+            beta
+          end
+          def beta
+            1 / 0
+          end
+        end
+      end
+      
+      it 'should be able to enter internal exceptions' do
+        redirect_pry_io(InputTester.new("O.klass.new.alpha",
+                                        "enter-exception",
+                                        "O.method_name = __method__",
+                                        "exit")) do
+          Pry.start
+        end
+
+        O.method_name.should == :beta
+      end
+
+      it 'should have the full call-stack available' do
+        redirect_pry_io(InputTester.new("O.klass.new.alpha",
+                                        "enter-exception",
+                                        "show-stack",
+                                        "exit"), out=StringIO.new) do
+          Pry.start
+        end
+
+        out.string.should =~ /alpha/
+      end
+    end
+    
     describe "enter-exception" do
       it  "should be able to enter an exception caught by pry" do
         # there are 3 types of situations where exception_explorer is invoked:
