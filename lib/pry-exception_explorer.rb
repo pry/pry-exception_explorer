@@ -1,6 +1,7 @@
 # pry-exception_explorer.rb
 # (C) 2012 John Mair (banisterfiend); MIT license
 
+require 'pry'
 require 'pry-stack_explorer'
 require "pry-exception_explorer/version"
 require "pry-exception_explorer/lazy_frame"
@@ -232,8 +233,8 @@ module PryExceptionExplorer
   end
 end
 
-# Add a hook to enable EE when invoked via `pry` executable
-Pry.config.hooks.add_hook(:when_started, :try_enable_exception_explorer) do
+# Add a hook to properly setup EE for correct exception behaviour inside a pry session
+Pry.config.hooks.add_hook(:before_session, :try_enable_exception_explorer) do
   PryExceptionExplorer.enabled     = true
   PryExceptionExplorer.inline      = false
 end
