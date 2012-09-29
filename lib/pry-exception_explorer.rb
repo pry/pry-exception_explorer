@@ -62,31 +62,15 @@ module PryExceptionExplorer
       !!local_hash[:enabled]
     end
 
-    # @param [Boolean] v Whether to intercept only those exceptions that bubble out of
-    #   `EE.wrap` block.
-    def wrap_active=(v)
-      local_hash[:wrap_active] = v
-    end
-
-    # @return [Boolean] Whether to intercept only those exceptions that bubble out of
-    #   `EE.wrap` block.
-    def wrap_active
-      !!local_hash[:wrap_active]
-    end
-
-    alias_method :wrap_active?, :wrap_active
     alias_method :enabled?, :enabled
-
 
     # Wrap the provided block - intercepting all exceptions
     # that bubble out, provided they satisfy the
     # assertion in `PryExceptionExplorer.intercept`.
     # @yield The block to wrap.
     def wrap
-      old_enabled, old_wrap_active = enabled, wrap_active
-      old_inline = inline
+      old_enabled, old_inline = enabled, inline
       self.enabled     = true
-      self.wrap_active = true
       self.inline      = false
       yield
     rescue Exception => ex
@@ -96,9 +80,8 @@ module PryExceptionExplorer
         raise ex
       end
     ensure
-      self.enabled     = old_enabled
-      self.wrap_active = old_wrap_active
-      self.inline      = old_inline
+      self.enabled = old_enabled
+      self.inline  = old_inline
     end
 
     # This method allows the user to assert the situations where an
@@ -222,16 +205,17 @@ module PryExceptionExplorer
 
     # Set initial state
     def init
-      PryExceptionExplorer.post_mortem = true
+
+      # enable EE
       PryExceptionExplorer.enabled = true
-      
-      # disable by default (intercept exceptions inline)
-      PryExceptionExplorer.wrap_active = true
+
+      # auto-start sessions on exceptions that would kill the program
+      PryExceptionExplorer.post_mortem = true
 
       # default is to capture all exceptions
-      PryExceptionExplorer.intercept { true }
+      PryExceptionExplorer.intercept(Exception)
 
-      # disable by default
+      # disable inline sessions by defulat
       PryExceptionExplorer.inline = false
       at_exit do
         ex = $!
@@ -250,7 +234,6 @@ end
 
 # Add a hook to enable EE when invoked via `pry` executable
 Pry.config.hooks.add_hook(:when_started, :try_enable_exception_explorer) do
-  PryExceptionExplorer.wrap_active = true
   PryExceptionExplorer.enabled     = true
   PryExceptionExplorer.inline      = false
 end

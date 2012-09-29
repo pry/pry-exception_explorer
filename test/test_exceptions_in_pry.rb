@@ -6,7 +6,6 @@ describe PryExceptionExplorer do
 
   before do
     PryExceptionExplorer.intercept { true }
-    PryExceptionExplorer.wrap_active = true
     PryExceptionExplorer.enabled = true
   end
 
@@ -76,6 +75,19 @@ describe PryExceptionExplorer do
 
         O.method_name.should == :toad
       end
+
+      it  "should be able to enter an explicitly provided exception (even if _ex_ has changed)" do
+        redirect_pry_io(InputTester.new("Ratty.new.ratty",
+                                        "ex = _ex_",
+                                        "AnotherException",
+                                        "enter-exception ex",
+                                        "O.method_name = __method__",
+                                        "exit", StringIO.new)) do
+          Pry.start
+        end
+
+        O.method_name.should == :toad
+      end      
 
       it "should have access to exception's caller" do
         mock_pry("Ratty.new.ratty", "enter-exception", "show-stack", "exit").should =~ /toad.*?weasel.*?ratty/m

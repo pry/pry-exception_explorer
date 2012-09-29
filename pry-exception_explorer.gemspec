@@ -2,11 +2,11 @@
 
 Gem::Specification.new do |s|
   s.name = "pry-exception_explorer"
-  s.version = "0.2.0pre1"
+  s.version = "0.2.0pre3"
 
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["John Mair (banisterfiend)"]
-  s.date = "2012-09-29"
+  s.date = "2012-09-30"
   s.description = "Enter the context of exceptions"
   s.email = "jrmair@gmail.com"
   s.executables = ["pry-shim"]

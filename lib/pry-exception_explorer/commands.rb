@@ -18,8 +18,8 @@ module PryExceptionExplorer
       _pry_.last_exception
     end
 
-    def enterable_exception?
-      PryExceptionExplorer.enabled && last_exception && last_exception.exception_call_stack
+    def enterable_exception?(ex=last_exception)      
+      PryExceptionExplorer.enabled && ex && ex.exception_call_stack
     end
 
     def inline_exception?
@@ -46,20 +46,33 @@ module PryExceptionExplorer
       BANNER
 
       def process
-        if enterable_exception?
-          PryStackExplorer.create_and_push_frame_manager(last_exception.exception_call_stack, _pry_)
-          PryExceptionExplorer.setup_exception_context(last_exception, _pry_)
+        ex = extract_exception
+        if enterable_exception?(ex)
+          PryStackExplorer.create_and_push_frame_manager(ex.exception_call_stack, _pry_)
+          PryExceptionExplorer.setup_exception_context(ex, _pry_)
 
           # have to use _pry_.run_command instead of 'run' here as
           # 'run' works on the current target which hasnt been updated
           # yet, whereas _pry_.run_command operates on the newly
           # updated target (the context of the exception)
           _pry_.run_command "whereami"
-        elsif last_exception
-          raise Pry::CommandError, "Current exception can't be entered! (perhaps a C exception)"
+        elsif ex
+          raise Pry::CommandError, "Current exception can't be entered! (perhaps an internal exception)"
         else
           raise Pry::CommandError,  "No exception to enter!"
         end
+      end
+
+      def extract_exception
+        if !arg_string.empty?
+          ex = target.eval(arg_string)
+          raise if !ex.is_a?(Exception)
+          ex
+        else
+          last_exception
+        end
+      rescue
+        raise Pry::CommandError, "Parameter must be a valid exception object."
       end
     end
 

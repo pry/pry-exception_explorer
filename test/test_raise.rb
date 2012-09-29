@@ -63,10 +63,7 @@ describe PryExceptionExplorer do
 
       EE.enabled = true
       EE.intercept(ArgumentError)
-      EE.wrap_active = false
       Pry.config.input = StringIO.new("exit-all\n")
-      # Pry.config.input = Readline
-      # Pry.config.output = $stdout
     end
 
     after do

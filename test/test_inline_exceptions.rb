@@ -4,8 +4,6 @@ require 'ostruct'
 # globally accessible state
 O = OpenStruct.new
 
-prev_wrap_state = PryExceptionExplorer.wrap_active
-PryExceptionExplorer.wrap_active = false
 PryExceptionExplorer.inline!
 
 prev_intercept_state = PryExceptionExplorer.intercept_object
@@ -15,7 +13,6 @@ PryExceptionExplorer.enabled = true
 describe PryExceptionExplorer do
 
   before do
-    PryExceptionExplorer.wrap_active = false
     O.exception_intercepted = false
 
     # Ensure that when an exception is intercepted (a pry session
@@ -434,7 +431,6 @@ describe PryExceptionExplorer do
 end
 
 # restore to default
-PryExceptionExplorer.wrap_active = prev_wrap_state
 PryExceptionExplorer.intercept_object = prev_intercept_state
 
 Object.send(:remove_const, :O)
