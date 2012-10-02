@@ -23,23 +23,44 @@ module PryExceptionExplorer
 
   class << self
 
-    # @return [Hash] A local hash.
-    def local_hash
-      @hash ||= {}
-    end
-
     # @return [Boolean] Whether exceptions are to be intercepted
     #   inline (at the raise site).
-    attr_accessor :inline
-    attr_accessor :post_mortem
+    attr_reader :inline
+
+    # @return [Boolean] Whether exceptions are to be auto-rescued
+    #   if they would terminate the program. 
+    attr_reader :post_mortem
+
+    # @return [Boolean] Holds the previous value of `EE.inline`
+    attr_accessor :old_inline_state
+
+    def inline=(v)
+      self.enabled = true if v
+      @inline = v
+    end
+
+    def post_mortem=(v)
+      self.enabled = true if v
+      @post_mortem = v
+    end
 
     # Ensure exceptions are intercepted at the raise site.
     def inline!
       self.inline = true
     end
 
+    # Ensure exceptions are intercepted if they would terminate the program.
+    def post_mortem!
+      self.post_mortem = true
+    end
+
     alias_method :inline?, :inline
     alias_method :post_mortem?, :post_mortem
+
+    # @return [Hash] A local hash.
+    def local_hash
+      @hash ||= {}
+    end
 
     # Enable Exception Explorer.
     # @return [Boolean]
@@ -206,12 +227,11 @@ module PryExceptionExplorer
 
     # Set initial state
     def init
-
-      # enable EE
-      PryExceptionExplorer.enabled = true
+      # disable EE by default
+      PryExceptionExplorer.enabled = false
 
       # auto-start sessions on exceptions that would kill the program
-      PryExceptionExplorer.post_mortem = true
+      PryExceptionExplorer.post_mortem = false
 
       # default is to capture all exceptions
       PryExceptionExplorer.intercept(Exception)
@@ -235,8 +255,13 @@ end
 
 # Add a hook to properly setup EE for correct exception behaviour inside a pry session
 Pry.config.hooks.add_hook(:before_session, :try_enable_exception_explorer) do
-  PryExceptionExplorer.enabled     = true
-  PryExceptionExplorer.inline      = false
+  PryExceptionExplorer.enabled          = true
+  PryExceptionExplorer.old_inline_state = PryExceptionExplorer.inline
+  PryExceptionExplorer.inline           = false
+end
+
+Pry.config.hooks.add_hook(:after_session, :restore_inline_state) do
+  PryExceptionExplorer.inline = PryExceptionExplorer.old_inline_state
 end
 
 # Bring in commands

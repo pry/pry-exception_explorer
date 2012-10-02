@@ -57,7 +57,7 @@ module PryExceptionExplorer
           # updated target (the context of the exception)
           _pry_.run_command "whereami"
         elsif ex
-          raise Pry::CommandError, "Current exception can't be entered! (perhaps an internal exception)"
+          raise Pry::CommandError, "Exception can't be entered! (perhaps an internal exception)"
         else
           raise Pry::CommandError,  "No exception to enter!"
         end
