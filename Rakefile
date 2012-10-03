@@ -26,7 +26,6 @@ def apply_spec_defaults(s)
   s.add_dependency('pry-stack_explorer', ">=0.4.6")
   s.add_development_dependency("bacon","~>1.1.0")
   s.add_development_dependency('rake', '~> 0.9')
-  s.executables = ['pry-shim']
 
   s.files = `git ls-files`.split("\n")
   s.test_files = `git ls-files -- test/*`.split("\n")
