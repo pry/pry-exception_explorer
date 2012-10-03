@@ -4,10 +4,11 @@ require 'ostruct'
 # globally accessible state
 O = OpenStruct.new
 
-PryExceptionExplorer.inline!
+
 
 prev_intercept_state = PryExceptionExplorer.intercept_object
 
+PryExceptionExplorer.inline!
 PryExceptionExplorer.enabled = true
 
 describe PryExceptionExplorer do
@@ -77,36 +78,37 @@ describe PryExceptionExplorer do
       EE.intercept_object = old
     end
 
-    describe "intercept_recurse" do
-      it 'should NOT allow recursive (in-session) interceptions by default' do
-        EE.intercept { |frame, ex| frame.klass == Toad }
+    # * DEPRECATED * this test is no longer relevant as in-session exception handling is now restricted to enter-exception style
+    # 
+    # describe "intercept_recurse" do
+    #   it 'should NOT allow recursive (in-session) interceptions by default' do
+    #     EE.intercept { |frame, ex| frame.klass == Toad }
 
-        redirect_pry_io(InputTester.new("O.before_self = self",
-                                        "Ratty.new.ratty",
-                                        "O.after_self = self",
-                                        "continue-exception",
-                                        "continue-exception")) do
-          Ratty.new.ratty
-        end
+    #     redirect_pry_io(InputTester.new("O.before_self = self",
+    #                                     "Ratty.new.ratty",
+    #                                     "O.after_self = self",
+    #                                     "continue-exception",
+    #                                     "continue-exception")) do
+    #       Ratty.new.ratty
+    #     end
 
-        O.before_self.should == O.after_self
-      end
+    #     O.before_self.should == O.after_self
+    #   end
 
-      it 'should allow recursive (in-session) interceptions when :intercept_recurse => true' do
-        EE.intercept { |frame, ex| frame.klass == Toad }.intercept_recurse(true)
+    #   it 'should allow recursive (in-session) interceptions when :intercept_recurse => true' do
+    #     EE.intercept { |frame, ex| frame.klass == Toad }.intercept_recurse(true)
 
-        redirect_pry_io(InputTester.new("O.before_self = self",
-                                        "Ratty.new.ratty",
-                                        "O.after_self = self",
-                                        "continue-exception",
-                                        "continue-exception")) do
-          Ratty.new.ratty
-        end
+    #     redirect_pry_io(InputTester.new("O.before_self = self",
+    #                                     "Ratty.new.ratty",
+    #                                     "O.after_self = self",
+    #                                     "continue-exception",
+    #                                     "continue-exception")) do
+    #       Ratty.new.ratty
+    #     end
 
-        O.before_self.should.not == O.after_self
-      end
-
-    end
+    #     O.before_self.should.not == O.after_self
+    #   end
+    # end
 
     describe "skip" do
       it 'should skip first frame with :skip => 1' do
@@ -179,9 +181,38 @@ describe PryExceptionExplorer do
         O.method_name.should == :toad
       end
     end
+   
+    describe "resetting inline EE state when leaving session" do
+
+      before do
+        Pry.config.hooks.add_hook(:before_session, :try_enable_exception_explorer) do
+          PryExceptionExplorer.enabled          = true
+          PryExceptionExplorer.old_inline_state = PryExceptionExplorer.inline
+          PryExceptionExplorer.inline           = false
+        end.add_hook(:after_session, :restore_inline_state) do
+          PryExceptionExplorer.inline = PryExceptionExplorer.old_inline_state
+        end
+      end
+
+      after do
+        Pry.config.hooks.delete_hook(:before_session, :try_enable_exception_explorer)
+        Pry.config.hooks.delete_hook(:after_session, :restore_inline_state)
+      end
+
+      it 'should have EE.inline set to false inside a session, and true outside the session' do
+        EE.intercept(Exception)
+        EE.inline!
+        redirect_pry_io(InputTester.new("O.in_session_inline_state = EE.inline",
+                                        "continue-exception")) do
+          raise "The children were crying, dreaming of the open beaks of dying birds."
+        end
+
+        O.in_session_inline_state.should == false
+        EE.inline.should == true
+      end
+    end
 
     describe "special case exception-only syntax" do
-
       describe "single exception" do
         it 'should intercept provided exceptions when given parameters (and no block)' do
           my_error = Class.new(StandardError)
@@ -384,30 +415,32 @@ describe PryExceptionExplorer do
       PryStackExplorer.frame_managers(O._pry_).count.should == 0
     end
 
-    describe "nested exceptions" do
-      it 'Each successive exception interception should be managed by its own pry instance and have its own call-stack' do
-        EE.intercept { |frame, ex| frame.prev.prev.method_name == :ratty }
+    # * DEPRECATED * this test is no longer relevant as in-session exception handling is now restricted to enter-exception style
+    # 
+    # describe "nested exceptions" do
+    #   it 'Each successive exception interception should be managed by its own pry instance and have its own call-stack' do
+    #     EE.intercept { |frame, ex| frame.prev.prev.method_name == :ratty }
 
-        redirect_pry_io(InputTester.new(
-                                        "O.first_stack_count = PryStackExplorer.frame_managers(_pry_).count",
-                                        "O._pry_ = _pry_",
-                                        "EE.intercept(ArgumentError)",
-                                        "raise ArgumentError",
-                                        "O._pry_2 = _pry_",
-                                        "O.second_stack_count = PryStackExplorer.frame_managers(_pry_).count",
-                                        "continue-exception",
-                                        "continue-exception"), StringIO.new) do
-          Ratty.new.ratty
-        end
+    #     redirect_pry_io(InputTester.new(
+    #                                     "O.first_stack_count = PryStackExplorer.frame_managers(_pry_).count",
+    #                                     "O._pry_ = _pry_",
+    #                                     "EE.intercept(ArgumentError)",
+    #                                     "raise ArgumentError",
+    #                                     "O._pry_2 = _pry_",
+    #                                     "O.second_stack_count = PryStackExplorer.frame_managers(_pry_).count",
+    #                                     "continue-exception",
+    #                                     "continue-exception"), StringIO.new) do
+    #       Ratty.new.ratty
+    #     end
 
-        O._pry_.should.not == O._pry_2
-        O.first_stack_count.should == 1
-        O.second_stack_count.should == 1
-        PryStackExplorer.frame_managers(O._pry_).count.should == 0
-        PryStackExplorer.frame_managers(O._pry_2).count.should == 0
-      end
+    #     O._pry_.should.not == O._pry_2
+    #     O.first_stack_count.should == 1
+    #     O.second_stack_count.should == 1
+    #     PryStackExplorer.frame_managers(O._pry_).count.should == 0
+    #     PryStackExplorer.frame_managers(O._pry_2).count.should == 0
+    #   end
 
-    end
+    # end
 
     describe "exit-exception" do
       it 'should exit session and raise exception' do

@@ -5,7 +5,7 @@ end
 
 require 'pry-exception_explorer'
 
-PryExceptionExplorer.enabled = true
+EE.inline!
 PryExceptionExplorer.intercept(ArgumentError)
 
 def alpha

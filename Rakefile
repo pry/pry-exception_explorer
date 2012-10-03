@@ -56,7 +56,17 @@ end
 
 desc "Run example C inline"
 task :example_c_inline do
-  sh "pry-shim ruby -I#{direc}/lib/ #{direc}/examples/example_c_inline.rb "
+  sh "ruby -I#{direc}/lib/ #{direc}/examples/example_c_inline.rb "
+end
+
+desc "Run example C wrap"
+task :example_c_wrap do
+  sh "ruby -I#{direc}/lib/ #{direc}/examples/example_c_wrap.rb "
+end
+
+desc "Run example post mortem"
+task :example_post_mortem do
+  sh "ruby -I#{direc}/lib/ #{direc}/examples/example_post_mortem.rb "
 end
 
 task :default => :test

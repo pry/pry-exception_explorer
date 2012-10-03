@@ -112,7 +112,7 @@ describe PryExceptionExplorer do
       PryExceptionExplorer.intercept { true }
 
       x = :no_exception_raised
-      redirect_pry_io(InputTester.new("exit-exception"), $stdout) do
+      redirect_pry_io(InputTester.new("exit-exception"), StringIO.new) do
         PryExceptionExplorer.wrap do
           Ratty.new.ratty
         end

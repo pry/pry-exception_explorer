@@ -34,11 +34,10 @@ class Exception
     if PryExceptionExplorer.enabled? &&
         PryExceptionExplorer.should_intercept_exception?(binding.of_caller(1), self) &&
         !caller.any? { |t| t.include?("raise") } && !exception_call_stack
-      
-      ex = old_exception(*args, &block)
 
+      ex = old_exception(*args, &block)
       ex.exception_call_stack = binding.callers.drop(1)
-      ex.set_backtrace(caller.drop(1)) if !ex.backtrace
+      ex.set_backtrace(caller) if !ex.backtrace
 
       PryExceptionExplorer.amend_exception_call_stack!(ex)
       ex.should_intercept   = true

@@ -5,7 +5,12 @@ end
 
 require 'pry-exception_explorer'
 
-PryExceptionExplorer.enabled = true
+EE.inline!
+
+# we need to fine tune intercept when intercepting C exceptions
+# otherwise we could be intercepting exceptions internal to rubygems
+# and god knows what else...
+EE.intercept(ZeroDivisionError)
 
 def alpha
   name = "john"

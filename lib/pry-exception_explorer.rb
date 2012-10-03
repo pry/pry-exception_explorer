@@ -25,32 +25,24 @@ module PryExceptionExplorer
 
     # @return [Boolean] Whether exceptions are to be intercepted
     #   inline (at the raise site).
-    attr_reader :inline
+    attr_accessor :inline
 
     # @return [Boolean] Whether exceptions are to be auto-rescued
     #   if they would terminate the program. 
-    attr_reader :post_mortem
+    attr_accessor :post_mortem
 
     # @return [Boolean] Holds the previous value of `EE.inline`
     attr_accessor :old_inline_state
 
-    def inline=(v)
-      self.enabled = true if v
-      @inline = v
-    end
-
-    def post_mortem=(v)
-      self.enabled = true if v
-      @post_mortem = v
-    end
-
-    # Ensure exceptions are intercepted at the raise site.
+    # Ensure exceptions are intercepted at the raise site, and enable EE.
     def inline!
+      self.enabled = true 
       self.inline = true
     end
 
-    # Ensure exceptions are intercepted if they would terminate the program.
+    # Ensure exceptions are intercepted if they would terminate the program, and enable EE.
     def post_mortem!
+      self.enabled = true 
       self.post_mortem = true
     end
 
@@ -214,14 +206,18 @@ module PryExceptionExplorer
     # @option options [Boolean] :inline Whether the exception is being
     #   entered inline (i.e within the `raise` method itself)
     def enter_exception(ex, options={})
-      hooks = Pry.config.hooks.dup.add_hook(:before_session, :set_exception_flag) do |_, _, _pry_|
+      hooks = Pry.config.hooks.dup
+      hooks.delete_hook(:before_session, :default)
+      hooks.add_hook(:before_session, :set_exception_flag) do |_, _, _pry_|
         setup_exception_context(ex, _pry_, options)
       end.add_hook(:before_session, :manage_intercept_recurse) do
         PryExceptionExplorer.intercept_object.disable! if PryExceptionExplorer.inline? && !PryExceptionExplorer.intercept_object.intercept_recurse?
       end.add_hook(:after_session, :manage_intercept_recurse) do
         PryExceptionExplorer.intercept_object.enable! if !PryExceptionExplorer.intercept_object.active?
+      end.add_hook(:before_session, :display_exception) do |_, _, _pry_|
+        _pry_.run_command "cat --ex"
       end
-
+      
       Pry.start binding, :call_stack => ex.exception_call_stack, :hooks => hooks
     end
 
@@ -253,17 +249,15 @@ module PryExceptionExplorer
   end
 end
 
-# Add a hook to properly setup EE for correct exception behaviour inside a pry session
+# Set up enter-exception style exception handling by default for pry sessions
 Pry.config.hooks.add_hook(:before_session, :try_enable_exception_explorer) do
   PryExceptionExplorer.enabled          = true
   PryExceptionExplorer.old_inline_state = PryExceptionExplorer.inline
   PryExceptionExplorer.inline           = false
-end
-
-Pry.config.hooks.add_hook(:after_session, :restore_inline_state) do
+end.add_hook(:after_session, :restore_inline_state) do
   PryExceptionExplorer.inline = PryExceptionExplorer.old_inline_state
 end
-
+  
 # Bring in commands
 Pry.config.commands.import PryExceptionExplorer::Commands
 
