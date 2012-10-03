@@ -84,8 +84,8 @@ module PryExceptionExplorer
     # @yield The block to wrap.
     def wrap
       old_enabled, old_inline = enabled, inline
-      self.enabled     = true
       self.inline      = false
+      self.enabled     = true
       yield
     rescue Exception => ex
       if ex.should_intercept?
