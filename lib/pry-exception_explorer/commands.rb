@@ -55,7 +55,7 @@ module PryExceptionExplorer
           # 'run' works on the current target which hasnt been updated
           # yet, whereas _pry_.run_command operates on the newly
           # updated target (the context of the exception)
-          _pry_.run_command "whereami"
+          _pry_.run_command "cat --ex 0"
         elsif ex
           raise Pry::CommandError, "Exception can't be entered! (perhaps an internal exception)"
         else
