@@ -1,16 +1,13 @@
 pry-exception_explorer
 ===========
 
-(C) John Mair (banisterfiend) 2011
+(C) John Mair (banisterfiend) 2012
 
 _Enter the context of exceptions_
 
 `pry-exception_explorer` is an interactive error console for MRI Ruby 1.9.2+ inspired by the [Hammertime](https://github.com/avdi/hammertime)
 gem, which was in turn inspired by consoles found in the Lisp and Smalltalk environments. `pry-exception_explorer` is a plugin
 for the [Pry REPL](http://pry.github.com). 
-
-**Note**, like the hammertime gem, `pry-exception_explorer` can only really intercept exceptions that are explicitly raised (using the `raise` method) from Ruby code. 
-This means that exceptions raised by syntax errors or from code such as `1/0` cannot be intercepted. Though experimental support for intercepting such deep (c-level) exceptions is provided by invoking with `pry --c-exceptions`.
 
 Using `pry-exception_explorer` we can automatically pull up a [Pry](http://pry.github.com) session at the point an exception arises and use `Pry`
 to inspect the state there to debug (and fix) the problem. We also get access to the entire call stack of the exception and can walk the stack to interactively examine the state in
@@ -33,9 +30,6 @@ In the Ruby file:
 ```ruby
 require 'pry-exception_explorer'
 
-EE.enabled = true
-EE.intercept(ArgumentError)
-
 def alpha
   name = "john"
   beta
@@ -52,8 +46,9 @@ def gamma(x)
   puts "2 * x = #{2 * x}"
 end
 
-alpha
-
+EE.wrap do
+  alpha
+end
 ```
 
 The following session starts up:
@@ -99,14 +94,13 @@ Features and limitations
 * Puts you in context of exception.
 * Makes entire call stack accessible (useful for drilling down to precise cause of error).
 * Allows you to 'continue' from exception, recovering from error (`continue-exception` command)
-* Has limited/experimental ability to intercept exceptions that arise from C code (use `pry --c-exceptions` to enable).
+* Can now intercept C exceptions (exceptions raised internally such as `NoMethodError`s, etc)
 * Let's you assert over state of entire stack when determining whether an exception should be intercepted.
 * Let's you start the session on any stack frame.
 
 ### Limitations
 
 * Only works on Ruby 1.9.2+ (including 1.9.3) MRI.
-* Limited support for `C` exceptions -- only some exceptions that arise from C code are caught.
 
 Contact
 -------
@@ -119,7 +113,7 @@ License
 
 (The MIT License)
 
-Copyright (c) 2011 John Mair (banisterfiend)
+Copyright (c) 2012 John Mair (banisterfiend)
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
