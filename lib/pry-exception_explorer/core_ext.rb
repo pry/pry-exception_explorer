@@ -31,7 +31,9 @@ class Exception
   alias_method :old_exception, :exception
 
   def exception(*args, &block)
-    if PryExceptionExplorer.enabled? &&
+    if defined?(PryExceptionExplorer) &&
+        PryExceptionExplorer.respond_to?(:enabled?) &&
+        PryExceptionExplorer.enabled? &&
         PryExceptionExplorer.should_intercept_exception?(binding.of_caller(1), self) &&
         !caller.any? { |t| t.include?("raise") } && !exception_call_stack
 
