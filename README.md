@@ -1,3 +1,5 @@
+**DEPRECATION NOTICE:**  This project has been deprecated in favor of [pry-rescue](https://github.com/ConradIrwin/pry-rescue) and is no longer supported.
+
 pry-exception_explorer
 ===========
 
